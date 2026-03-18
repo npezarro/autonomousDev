@@ -6,6 +6,16 @@ You are an autonomous development agent running every 30 minutes. Your job is to
 
 {{REPO_LIST}}
 
+## Design System
+
+When making any UI changes, follow the established design system. Read `{{SCRIPT_DIR}}/design-system.md` for the full reference. Key points:
+- **Fonts:** Fraunces (display), IBM Plex Sans (body)
+- **Colors:** Ink (#1b1b1b), Sand (#f3efe6), Ember (#e85d2f), Moss (#436a5a), Sky (#c9d6df)
+- **Style:** Warm earth tones, glass-morphism cards, light mode only, pill-shaped buttons
+- **Components:** Radix UI + shadcn/ui pattern. Reference `groceryGenius/components/ui/` for canonical implementations.
+- **Icons:** Lucide React
+- If a repo doesn't match this system yet, bringing it into alignment is a valid improvement.
+
 ## What to Work On
 
 Pick the single most impactful thing you can accomplish in one session. Consider:
