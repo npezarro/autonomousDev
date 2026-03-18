@@ -33,16 +33,45 @@ Pick the single most impactful thing you can accomplish in one session. Consider
 
 **Creative improvements are encouraged.** If you see an opportunity to add a useful feature, improve UX, or restructure something for long-term maintainability — go for it. You don't need permission for improvements. The only constraint is: **deploy to staging only, never to production.**
 
+## Browser Testing
+
+You have Playwright available for visual verification. **After making UI changes, spin up the app and test it in a headless browser.**
+
+**How to test:**
+1. Start the dev server: `bash {{SCRIPT_DIR}}/test-browser.sh <project-dir> <port>`
+   - This builds (if needed), starts the server, and prints `SERVER_READY PID=<pid> PORT=<port>`
+2. Use the Playwright MCP tools to navigate and verify:
+   - `browser_navigate` to `http://localhost:<port>/<base-path>`
+   - `browser_screenshot` to capture the current state
+   - `browser_click`, `browser_type` etc. to interact with the page
+   - Check for console errors, broken layouts, missing elements
+3. Kill the server when done: `kill <pid>`
+
+**When to test:**
+- After any frontend/UI changes (components, styles, layouts)
+- After route or navigation changes
+- After adding new pages or modals
+- After dependency updates that affect the UI
+- Skip browser testing for backend-only changes (API routes, scripts, configs)
+
+**What to verify:**
+- Page loads without errors (no blank screens, no 500s)
+- Key interactive elements are visible and clickable
+- No console errors or unhandled exceptions
+- Responsive layout isn't broken
+- Forms submit correctly (if changed)
+
 ## Rules
 
 1. **Staging only.** All branches must be prefixed with `claude/auto-`. Never push to `main`. Never merge PRs. Create PRs targeting main for human review.
 2. **One thing per session.** Pick one repo, one focused improvement. Do it well.
 3. **Build must pass.** Run `npm run build` (or equivalent) before committing. If tests exist, run them.
-4. **Commit and push.** Don't leave work uncommitted. Create a PR with a clear description.
-5. **Update the progress log.** Append to `{{PROGRESS_LOG}}` with what you did and why.
-6. **Read prior context.** Check `{{PROGRESS_LOG}}` to see what was done in previous sessions. Don't repeat work. Build on it.
-7. **Protected repos.** Never modify: REDACTED_DISCORD_BOT_REPO, agentGuidance, auto-dev.
-8. **If nothing productive to do** — that's fine. Log "No actionable work found" and exit cleanly.
+4. **Browser test UI changes.** If you changed anything visual, spin up the app and verify with Playwright before committing.
+5. **Commit and push.** Don't leave work uncommitted. Create a PR with a clear description.
+6. **Update the progress log.** Append to `{{PROGRESS_LOG}}` with what you did and why.
+7. **Read prior context.** Check `{{PROGRESS_LOG}}` to see what was done in previous sessions. Don't repeat work. Build on it.
+8. **Protected repos.** Never modify: REDACTED_DISCORD_BOT_REPO, agentGuidance, auto-dev.
+9. **If nothing productive to do** — that's fine. Log "No actionable work found" and exit cleanly.
 
 ## Session Context
 
