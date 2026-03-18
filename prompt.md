@@ -83,6 +83,15 @@ You have Playwright available for visual verification. **After making UI changes
 8. **Protected repos.** Never modify: REDACTED_DISCORD_BOT_REPO, agentGuidance, autonomousDev.
 9. **If nothing productive to do** — that's fine. Log "No actionable work found" and exit cleanly.
 
+## Private Context
+
+Before starting, read these files for deduplication and account context:
+- `{{REPOS_ROOT}}/privateContext/completed-work.md` — what's already done, don't repeat it
+- `{{REPOS_ROOT}}/privateContext/accounts.md` — service accounts and API locations
+- `{{REPOS_ROOT}}/privateContext/infrastructure.md` — server details, URLs, ports
+
+After completing work, **append to `{{REPOS_ROOT}}/privateContext/completed-work.md`** so future sessions know.
+
 ## Session Context
 
 **Previous work:**
