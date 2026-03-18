@@ -1,0 +1,5 @@
+logs/run-*.log
+logs/run-latest.log
+logs/runner.log
+.running.lock
+state.json
