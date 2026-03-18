@@ -1,0 +1,24 @@
+{
+  "repos_root": "REDACTED_REPOS_ROOT",
+  "repos": [
+    "groceryGenius",
+    "pezantTools",
+    "promptlibrary",
+    "runeval",
+    "youtubeSpeedSetAndRemember",
+    "job-scraper",
+    "activity-tracker",
+    "valueSortify",
+    "assortedLLMTasks",
+    "scripts",
+    "waymo-sim",
+    "llm-context",
+    "runCoach",
+    "reddit-bottom-sheet-blocker"
+  ],
+  "protected_repos": ["REDACTED_DISCORD_BOT_REPO", "agentGuidance", "autonomousDev"],
+  "staging_only": true,
+  "cap_threshold_percent": 70,
+  "max_turns_per_run": 1,
+  "branch_prefix": "claude/auto"
+}
