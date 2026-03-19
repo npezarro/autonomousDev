@@ -187,14 +187,15 @@ if [ $EXIT_CODE -eq 0 ]; then
 
 ${RESULT:0:1800}"
 
-  # Post merge suggestions to #autonomous-dev-merges if any PRs need review
-  NEEDS_REVIEW=$(echo "$RESULT" | grep -i 'NEEDS_REVIEW' | head -5)
-  if [ -n "$NEEDS_REVIEW" ]; then
-    post_to_discord "$AUTONOMOUS_MERGES_WEBHOOK" "**Run #$RUN_NUMBER — PRs awaiting review:**
+  # Post production proposals to #autonomous-dev-merges if any
+  PROPOSAL=$(echo "$RESULT" | sed -n '/PRODUCTION_PROPOSAL:/,/^$/p' | head -20)
+  if [ -n "$PROPOSAL" ]; then
+    post_to_discord "$AUTONOMOUS_MERGES_WEBHOOK" "**Run #$RUN_NUMBER — Production Deploy Proposal**
 
-$NEEDS_REVIEW
+$PROPOSAL
 
-React with :white_check_mark: to approve merge to production. These PRs were left open because they contain higher-risk changes."
+These changes have been merged to main and verified on staging.
+React with :white_check_mark: to approve deploying to production."
   fi
 else
   post_to_discord "$AUTONOMOUS_DEV_WEBHOOK" "**Run #$RUN_NUMBER FAILED** (exit: $EXIT_CODE, cost: $COST)
