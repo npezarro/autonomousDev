@@ -1,0 +1,24 @@
+{
+  "repos_root": "REDACTED_REPOS_ROOT",
+  "repos": [
+    "groceryGenius",
+    "pezantTools",
+    "promptlibrary",
+    "runeval",
+    "youtubeSpeedSetAndRemember",
+    "job-scraper",
+    "activity-tracker",
+    "valueSortify",
+    "llm-tasks",
+    "scripts",
+    "waymo-sim",
+    "llm-context",
+    "runCoach",
+    "reddit-bottom-sheet-blocker",
+    "social-tools"
+  ],
+  "protected_repos": ["REDACTED_DISCORD_BOT_REPO", "agentGuidance", "auto-dev"],
+  "work_log_channel_id": "REDACTED_WORK_LOG_CHANNEL_ID",
+  "max_timeout_seconds": 900,
+  "branch_prefix": "claude/fix"
+}
