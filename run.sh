@@ -18,6 +18,17 @@ STATE_FILE="$SCRIPT_DIR/state.json"
 CLAUDE_BIN="${CLAUDE_BIN:-claude}"
 DRY_RUN="${1:-}"
 
+# ── Load secrets from .env ────────────────────────────────────────────
+
+if [ -f "$SCRIPT_DIR/.env" ]; then
+  set -a
+  source "$SCRIPT_DIR/.env"
+  set +a
+fi
+
+AUTONOMOUS_DEV_WEBHOOK="${AUTONOMOUS_DEV_WEBHOOK:-}"
+AUTONOMOUS_MERGES_WEBHOOK="${AUTONOMOUS_MERGES_WEBHOOK:-}"
+
 # ── Logging ──────────────────────────────────────────────────────────
 
 mkdir -p "$LOGS_DIR"
@@ -42,18 +53,25 @@ fi
 echo $$ > "$LOCK_FILE"
 trap 'rm -f "$LOCK_FILE"' EXIT
 
+# ── Helper: atomic JSON state write ──────────────────────────────────
+
+write_state() {
+  local tmp="$STATE_FILE.tmp"
+  echo "$1" > "$tmp"
+  mv "$tmp" "$STATE_FILE"
+}
+
 # ── State management ─────────────────────────────────────────────────
 
 RUN_NUMBER=1
 if [ -f "$STATE_FILE" ]; then
-  RUN_NUMBER=$(python3 -c "import json; d=json.load(open('$STATE_FILE')); print(d.get('run_number', 0) + 1)" 2>/dev/null || echo 1)
+  RUN_NUMBER=$(( $(jq -r '.run_number // 0' "$STATE_FILE" 2>/dev/null || echo 0) + 1 ))
 fi
 
 # ── Cap budget check ─────────────────────────────────────────────────
-# Read the cap threshold from config
-CAP_THRESHOLD=$(python3 -c "import json; print(json.load(open('$CONFIG')).get('cap_threshold_percent', 70))" 2>/dev/null || echo 70)
 
-# Check if we recently hit a rate limit (simple heuristic: look at last run's output)
+CAP_THRESHOLD=$(jq -r '.cap_threshold_percent // 70' "$CONFIG" 2>/dev/null || echo 70)
+
 LAST_RUN_LOG="$LOGS_DIR/run-latest.log"
 if [ -f "$LAST_RUN_LOG" ] && grep -q '"status":"rejected"' "$LAST_RUN_LOG" 2>/dev/null; then
   log "SKIP: Last run hit rate limit, waiting for next cycle"
@@ -62,14 +80,13 @@ fi
 
 # ── Build repo list ──────────────────────────────────────────────────
 
-REPOS_ROOT=$(python3 -c "import json; print(json.load(open('$CONFIG')).get('repos_root', 'REDACTED_REPOS_ROOT'))")
-REPOS=$(python3 -c "import json; print('\n'.join(json.load(open('$CONFIG')).get('repos', [])))")
+REPOS_ROOT=$(jq -r '.repos_root // "REDACTED_REPOS_ROOT"' "$CONFIG")
+REPOS=$(jq -r '.repos[]' "$CONFIG")
 
 REPO_LIST=""
 for repo in $REPOS; do
   repo_dir="$REPOS_ROOT/$repo"
   if [ -d "$repo_dir" ]; then
-    # Get git status summary
     branch=$(cd "$repo_dir" && git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
     last_commit=$(cd "$repo_dir" && git log --oneline -1 2>/dev/null || echo "no commits")
     dirty=$(cd "$repo_dir" && git status --porcelain 2>/dev/null | wc -l)
@@ -82,7 +99,6 @@ done
 
 PRIOR_CONTEXT="No prior sessions."
 if [ -f "$PROGRESS_LOG" ]; then
-  # Get last 30 lines of the progress log
   PRIOR_CONTEXT=$(tail -30 "$PROGRESS_LOG" 2>/dev/null || echo "No prior sessions.")
 fi
 
@@ -110,20 +126,18 @@ fi
 AUTH_CHECK=$(echo "Say: OK" | "$CLAUDE_BIN" -p 2>&1)
 if echo "$AUTH_CHECK" | grep -qi "authentication_failed\|does not have access\|login again"; then
   log "SKIP: Claude auth failed — token may have expired. Run 'claude' interactively to re-auth."
-  # Update state so run number increments (don't retry same number forever)
-  python3 -c "
-import json
-state = {'run_number': $RUN_NUMBER, 'last_run': '$(date -u +%Y-%m-%dT%H:%M:%SZ)', 'last_exit_code': 1, 'last_cost': '\$0', 'last_error': 'auth_failed'}
-json.dump(state, open('$STATE_FILE', 'w'), indent=2)
-" 2>/dev/null || true
+  write_state "$(jq -n \
+    --argjson num "$RUN_NUMBER" \
+    --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    '{run_number: $num, last_run: $ts, last_exit_code: 1, last_cost: "$0", last_error: "auth_failed"}')"
   exit 1
 fi
 
 # ── Run Claude ───────────────────────────────────────────────────────
 
 RUN_LOG="$LOGS_DIR/run-$(date -u +%Y%m%d-%H%M%S).log"
+touch "$RUN_LOG" && chmod 600 "$RUN_LOG"
 
-# Use the repos root as CWD so Claude has access to all repos
 timeout 2700 "$CLAUDE_BIN" \
   -p \
   --dangerously-skip-permissions \
@@ -144,39 +158,26 @@ cp "$RUN_LOG" "$LAST_RUN_LOG" 2>/dev/null || true
 
 # ── Extract result ───────────────────────────────────────────────────
 
-RESULT=$(python3 -c "
-import json, sys
-for line in open('$RUN_LOG'):
-    line = line.strip()
-    if not line: continue
-    try:
-        obj = json.loads(line)
-        if obj.get('type') == 'result' and 'result' in obj:
-            print(obj['result'][:2000])
-            sys.exit(0)
-    except: pass
-print('No result extracted')
-" 2>/dev/null || echo "Failed to parse output")
+# Parse NDJSON log for the result line
+RESULT=$(grep -m1 '"type":"result"' "$RUN_LOG" 2>/dev/null \
+  | jq -r '.result // "No result extracted"' 2>/dev/null \
+  | head -c 2000 \
+  || echo "No result extracted")
 
-COST=$(python3 -c "
-import json
-for line in open('$RUN_LOG'):
-    line = line.strip()
-    if not line: continue
-    try:
-        obj = json.loads(line)
-        if obj.get('type') == 'result' and 'total_cost_usd' in obj:
-            print(f\"\${obj['total_cost_usd']:.4f}\")
-    except: pass
-" 2>/dev/null || echo "unknown")
+COST=$(grep '"type":"result"' "$RUN_LOG" 2>/dev/null \
+  | jq -r 'select(.total_cost_usd) | "$\(.total_cost_usd | tostring | .[0:6])"' 2>/dev/null \
+  | tail -1 \
+  || echo "unknown")
+[ -z "$COST" ] && COST="unknown"
 
-# ── Update state ─────────────────────────────────────────────────────
+# ── Update state (atomic write) ─────────────────────────────────────
 
-python3 -c "
-import json
-state = {'run_number': $RUN_NUMBER, 'last_run': '$(date -u +%Y-%m-%dT%H:%M:%SZ)', 'last_exit_code': $EXIT_CODE, 'last_cost': '$COST'}
-json.dump(state, open('$STATE_FILE', 'w'), indent=2)
-" 2>/dev/null || true
+write_state "$(jq -n \
+  --argjson num "$RUN_NUMBER" \
+  --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  --argjson exit "$EXIT_CODE" \
+  --arg cost "$COST" \
+  '{run_number: $num, last_run: $ts, last_exit_code: $exit, last_cost: $cost}')"
 
 # ── Log result ───────────────────────────────────────────────────────
 
@@ -189,19 +190,23 @@ fi
 
 # ── Post to Discord #autonomous-dev ──────────────────────────────────
 
-AUTONOMOUS_DEV_WEBHOOK="REDACTED_AUTONOMOUS_DEV_WEBHOOK"
-AUTONOMOUS_MERGES_WEBHOOK="REDACTED_AUTONOMOUS_MERGES_WEBHOOK"
-
 post_to_discord() {
   local webhook="$1" msg="$2"
+  [ -z "$webhook" ] && return 0
   msg="${msg:0:1990}"
+  # Use jq to safely JSON-encode the message content
+  local payload
+  payload=$(jq -n --arg content "$msg" '{"username": "Autonomous Dev", "content": $content}')
   curl -s -X POST "$webhook" \
     -H "Content-Type: application/json" \
-    -d "$(python3 -c "import json,sys; print(json.dumps({'username': 'Autonomous Dev', 'content': sys.argv[1]}))" "$msg")" > /dev/null 2>&1 || true
+    -d "$payload" > /dev/null 2>&1 || true
 }
 
+if [ -z "$AUTONOMOUS_DEV_WEBHOOK" ]; then
+  log "WARN: AUTONOMOUS_DEV_WEBHOOK not set — Discord notifications disabled"
+fi
+
 if [ $EXIT_CODE -eq 0 ]; then
-  # Post run summary to #autonomous-dev
   post_to_discord "$AUTONOMOUS_DEV_WEBHOOK" "**Run #$RUN_NUMBER completed** (cost: $COST)
 
 ${RESULT:0:1800}"
