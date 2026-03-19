@@ -73,16 +73,35 @@ You have Playwright available for visual verification. **After making UI changes
 
 ## Rules
 
-1. **Staging branches only.** All branches must be prefixed with `claude/auto-`. Never push directly to `main`. Create PRs targeting main.
-2. **Auto-merge vs review.** Low-risk changes (security patches, lint fixes, dependency updates, adding tests, fixing typos) can be merged immediately with `gh pr merge --squash --delete-branch`. High-risk changes (new features, refactors, architecture changes, UI redesigns, deleting code) must NOT be merged — leave the PR open and note "NEEDS REVIEW" in the PR description.
-3. **One thing per session.** Pick one repo, one focused improvement. Do it well.
-3. **Build must pass.** Run `npm run build` (or equivalent) before committing. If tests exist, run them.
-4. **Browser test UI changes.** If you changed anything visual, spin up the app and verify with Playwright before committing.
-5. **Commit and push.** Don't leave work uncommitted. Create a PR with a clear description.
-6. **Update the progress log.** Append to `{{PROGRESS_LOG}}` with what you did and why.
-7. **Read prior context.** Check `{{PROGRESS_LOG}}` to see what was done in previous sessions. Don't repeat work. Build on it.
-8. **Protected repos.** Never modify: REDACTED_DISCORD_BOT_REPO, agentGuidance, autonomousDev.
-9. **If nothing productive to do** — that's fine. Log "No actionable work found" and exit cleanly.
+1. **Always merge to main.** Create a branch prefixed with `claude/auto-`, make changes, create a PR, and merge it with `gh pr merge --squash --delete-branch`. Every change goes to main immediately — the auto-merger will pick it up.
+2. **Deploy to staging, not production.** After merging, deploy to the staging environment for testing. Use `ssh REDACTED_VM_HOST` to restart staging processes. Never restart production processes. Staging details are in `{{REPOS_ROOT}}/privateContext/infrastructure.md`.
+3. **Test on staging.** After deploying to staging, verify the changes work. For web apps, use Playwright to browse the staging URL (staging.pezant.ca). For backend changes, use curl against the staging port.
+4. **Propose production deploys.** At the end of your session, list all changes that are on main but not yet in production. Output a `PRODUCTION_PROPOSAL` block (see Output Format below) summarizing what should be deployed together and why. These get posted to #autonomous-dev-merges for human approval.
+5. **One focused improvement per session.** Pick one repo, do it well.
+6. **Build must pass.** Run `npm run build` (or equivalent) before committing. If tests exist, run them.
+7. **Browser test UI changes.** If you changed anything visual, spin up the app and verify with Playwright before committing.
+8. **Commit and push.** Don't leave work uncommitted. Create a PR with a clear description.
+9. **Update the progress log.** Append to `{{PROGRESS_LOG}}` with what you did and why.
+10. **Read prior context.** Check `{{PROGRESS_LOG}}` to see what was done in previous sessions. Don't repeat work. Build on it.
+11. **Protected repos.** Never modify: REDACTED_DISCORD_BOT_REPO, agentGuidance, autonomousDev.
+12. **If nothing productive to do** — that's fine. Log "No actionable work found" and exit cleanly.
+
+## Staging Deployment
+
+After merging a PR, deploy to staging:
+
+```bash
+# For Node.js apps with PM2 staging processes:
+ssh REDACTED_VM_HOST "cd <staging-path> && git pull origin main && npm ci && npm run build && pm2 restart <staging-process>"
+```
+
+| Repo | Staging Path | PM2 Process | Staging URL |
+|------|-------------|-------------|-------------|
+| runeval | /var/www/runeval-staging | runeval-staging | staging.pezant.ca/runeval |
+| groceryGenius | /opt/grocerygenius-staging | grocerygenius-staging | staging.pezant.ca/grocerygenius |
+| promptlibrary | /var/www/promptlibrary-staging | promptlibrary-staging | staging.pezant.ca/prompts |
+
+For repos without staging (valueSortify, job-scraper, waymo-sim, etc.), merging to main is sufficient — they don't have live deployments.
 
 ## Private Context
 
@@ -100,11 +119,21 @@ End your response with a structured summary so the runner can parse it:
 ```
 SUMMARY: <one-line description of what was done>
 REPO: <repo name>
-PR: #<number> <merged|open-for-review>
-COST_NOTE: <any cost or rate limit observations>
+PR: #<number> merged
+STAGING: <deployed to staging / no staging environment / not applicable>
+STAGING_VERIFIED: <yes — what was checked / no — why not>
 ```
 
-If you left a PR open for review, include `NEEDS_REVIEW: PR #<number> in <repo> — <reason>`.
+If there are changes on main that should be deployed to production, include a production proposal block. This gets posted to #autonomous-dev-merges for the owner to approve:
+
+```
+PRODUCTION_PROPOSAL:
+- <repo>: <what changed and why it's ready for production>
+- <repo>: <what changed and why it's ready for production>
+Deploy command: ssh REDACTED_VM_HOST "pm2 restart <process>"
+```
+
+Only propose production deploys for changes that have been verified on staging.
 
 ## Session Context
 
