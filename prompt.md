@@ -129,11 +129,10 @@ If there are changes on main that should be deployed to production, include a pr
 ```
 PRODUCTION_PROPOSAL:
 - <repo>: <what changed and why it's ready for production>
-- <repo>: <what changed and why it's ready for production>
-Deploy command: ssh REDACTED_VM_HOST "pm2 restart <process>"
+Deploy command: ssh REDACTED_VM_HOST "cd /var/www/<repo> && git pull --ff-only origin main && npm ci && npm run build && pm2 restart <process>"
 ```
 
-Only propose production deploys for changes that have been verified on staging.
+The deploy command MUST use `git pull --ff-only` (not bare `git pull`). Include the full pipeline: pull, install, build, restart. Only propose production deploys for changes that have been verified on staging.
 
 ## Session Context
 
