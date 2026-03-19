@@ -129,10 +129,11 @@ If there are changes on main that should be deployed to production, include a pr
 ```
 PRODUCTION_PROPOSAL:
 - <repo>: <what changed and why it's ready for production>
-Deploy command: ssh REDACTED_VM_HOST "cd /var/www/<repo> && git pull --ff-only origin main && npm ci && npm run build && pm2 restart <process>"
 ```
 
-The deploy command MUST use `git pull --ff-only` (not bare `git pull`). Include the full pipeline: pull, install, build, restart. Only propose production deploys for changes that have been verified on staging.
+Do NOT include raw SSH deploy commands. The bot handles production deploys automatically when the owner approves: it creates a PR from `main` → `production`, merges it, then deploys on the VM. You only need to list the repo names and what changed.
+
+Only propose production deploys for changes that have been verified on staging.
 
 ## Session Context
 
