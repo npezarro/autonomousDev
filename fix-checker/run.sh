@@ -17,7 +17,6 @@ FAILURE_LOG="$SCRIPT_DIR/logs/failures.md"
 LOGS_DIR="$SCRIPT_DIR/logs"
 LOCK_FILE="$SCRIPT_DIR/.running.lock"
 STATE_FILE="$SCRIPT_DIR/state.json"
-PARENT_LOCK="$PARENT_DIR/.running.lock"
 GUIDANCE_DIR="REDACTED_REPOS_ROOT/agentGuidance/guidance"
 
 CLAUDE_BIN="${CLAUDE_BIN:-claude}"
@@ -49,14 +48,14 @@ log() {
   echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) $*" | tee -a "$LOGS_DIR/runner.log"
 }
 
-# ── Capacity check: skip if autonomous-dev is running ───────────────
+# ── Capacity check: skip if memory is too low ───────────────────────
 
-if [ -f "$PARENT_LOCK" ]; then
-  PARENT_PID=$(cat "$PARENT_LOCK" 2>/dev/null || echo "")
-  if [ -n "$PARENT_PID" ] && kill -0 "$PARENT_PID" 2>/dev/null; then
-    log "SKIP: Autonomous-dev is running (PID $PARENT_PID), deferring"
-    exit 0
-  fi
+MIN_AVAILABLE_MB=$(jq -r '.min_available_mb // 4096' "$CONFIG" 2>/dev/null || echo 4096)
+AVAILABLE_MB=$(awk '/MemAvailable/ {print int($2/1024)}' /proc/meminfo 2>/dev/null || echo 99999)
+
+if [ "$AVAILABLE_MB" -lt "$MIN_AVAILABLE_MB" ]; then
+  log "SKIP: Low memory (${AVAILABLE_MB}MB available, need ${MIN_AVAILABLE_MB}MB)"
+  exit 0
 fi
 
 # ── Lock (prevent overlapping runs) ────────────────────────────────
