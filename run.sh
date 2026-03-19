@@ -168,6 +168,21 @@ else
   log "FAIL: Run #$RUN_NUMBER exited with code $EXIT_CODE (cost: $COST)"
 fi
 
+# ── Post to Discord #cli-interactions ────────────────────────────────
+
+DISCORD_SCRIPT="$REPOS_ROOT/privateContext/discord-webhook.sh"
+if [ -x "$DISCORD_SCRIPT" ]; then
+  if [ $EXIT_CODE -eq 0 ]; then
+    "$DISCORD_SCRIPT" \
+      "**Autonomous Dev — Run #$RUN_NUMBER** (cost: $COST)" \
+      "${RESULT:0:1900}" 2>/dev/null || true
+  else
+    "$DISCORD_SCRIPT" \
+      "**Autonomous Dev — Run #$RUN_NUMBER FAILED** (exit: $EXIT_CODE, cost: $COST)" \
+      "Run failed. Check logs at ~/repos/auto-dev/logs/" 2>/dev/null || true
+  fi
+fi
+
 # ── Clean up old logs (keep last 50) ─────────────────────────────────
 
 ls -t "$LOGS_DIR"/run-*.log 2>/dev/null | tail -n +51 | xargs rm -f 2>/dev/null || true
