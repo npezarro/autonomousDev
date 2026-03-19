@@ -105,6 +105,20 @@ if [ "$DRY_RUN" = "--dry-run" ]; then
   exit 0
 fi
 
+# ── Pre-flight: verify Claude auth ───────────────────────────────────
+
+AUTH_CHECK=$(echo "Say: OK" | "$CLAUDE_BIN" -p 2>&1)
+if echo "$AUTH_CHECK" | grep -qi "authentication_failed\|does not have access\|login again"; then
+  log "SKIP: Claude auth failed — token may have expired. Run 'claude' interactively to re-auth."
+  # Update state so run number increments (don't retry same number forever)
+  python3 -c "
+import json
+state = {'run_number': $RUN_NUMBER, 'last_run': '$(date -u +%Y-%m-%dT%H:%M:%SZ)', 'last_exit_code': 1, 'last_cost': '\$0', 'last_error': 'auth_failed'}
+json.dump(state, open('$STATE_FILE', 'w'), indent=2)
+" 2>/dev/null || true
+  exit 1
+fi
+
 # ── Run Claude ───────────────────────────────────────────────────────
 
 RUN_LOG="$LOGS_DIR/run-$(date -u +%Y%m%d-%H%M%S).log"
@@ -119,6 +133,11 @@ timeout 2700 "$CLAUDE_BIN" \
   > "$RUN_LOG" 2>&1
 
 EXIT_CODE=$?
+
+# Handle timeout (exit code 124)
+if [ $EXIT_CODE -eq 124 ]; then
+  log "TIMEOUT: Run #$RUN_NUMBER exceeded 45 minute timeout"
+fi
 
 # Copy to latest for cap check on next run
 cp "$RUN_LOG" "$LAST_RUN_LOG" 2>/dev/null || true
