@@ -168,19 +168,38 @@ else
   log "FAIL: Run #$RUN_NUMBER exited with code $EXIT_CODE (cost: $COST)"
 fi
 
-# ── Post to Discord #cli-interactions ────────────────────────────────
+# ── Post to Discord #autonomous-dev ──────────────────────────────────
 
-DISCORD_SCRIPT="$REPOS_ROOT/privateContext/discord-webhook.sh"
-if [ -x "$DISCORD_SCRIPT" ]; then
-  if [ $EXIT_CODE -eq 0 ]; then
-    "$DISCORD_SCRIPT" \
-      "**Autonomous Dev — Run #$RUN_NUMBER** (cost: $COST)" \
-      "${RESULT:0:1900}" 2>/dev/null || true
-  else
-    "$DISCORD_SCRIPT" \
-      "**Autonomous Dev — Run #$RUN_NUMBER FAILED** (exit: $EXIT_CODE, cost: $COST)" \
-      "Run failed. Check logs at ~/repos/auto-dev/logs/" 2>/dev/null || true
+AUTONOMOUS_DEV_WEBHOOK="REDACTED_AUTONOMOUS_DEV_WEBHOOK"
+AUTONOMOUS_MERGES_WEBHOOK="REDACTED_AUTONOMOUS_MERGES_WEBHOOK"
+
+post_to_discord() {
+  local webhook="$1" msg="$2"
+  msg="${msg:0:1990}"
+  curl -s -X POST "$webhook" \
+    -H "Content-Type: application/json" \
+    -d "$(python3 -c "import json,sys; print(json.dumps({'username': 'Autonomous Dev', 'content': sys.argv[1]}))" "$msg")" > /dev/null 2>&1 || true
+}
+
+if [ $EXIT_CODE -eq 0 ]; then
+  # Post run summary to #autonomous-dev
+  post_to_discord "$AUTONOMOUS_DEV_WEBHOOK" "**Run #$RUN_NUMBER completed** (cost: $COST)
+
+${RESULT:0:1800}"
+
+  # Post merge suggestions to #autonomous-dev-merges if any PRs need review
+  NEEDS_REVIEW=$(echo "$RESULT" | grep -i 'NEEDS_REVIEW' | head -5)
+  if [ -n "$NEEDS_REVIEW" ]; then
+    post_to_discord "$AUTONOMOUS_MERGES_WEBHOOK" "**Run #$RUN_NUMBER — PRs awaiting review:**
+
+$NEEDS_REVIEW
+
+React with :white_check_mark: to approve merge to production. These PRs were left open because they contain higher-risk changes."
   fi
+else
+  post_to_discord "$AUTONOMOUS_DEV_WEBHOOK" "**Run #$RUN_NUMBER FAILED** (exit: $EXIT_CODE, cost: $COST)
+
+Check logs at ~/repos/auto-dev/logs/"
 fi
 
 # ── Clean up old logs (keep last 50) ─────────────────────────────────

@@ -73,8 +73,9 @@ You have Playwright available for visual verification. **After making UI changes
 
 ## Rules
 
-1. **Staging only.** All branches must be prefixed with `claude/auto-`. Never push to `main`. Never merge PRs. Create PRs targeting main for human review.
-2. **One thing per session.** Pick one repo, one focused improvement. Do it well.
+1. **Staging branches only.** All branches must be prefixed with `claude/auto-`. Never push directly to `main`. Create PRs targeting main.
+2. **Auto-merge vs review.** Low-risk changes (security patches, lint fixes, dependency updates, adding tests, fixing typos) can be merged immediately with `gh pr merge --squash --delete-branch`. High-risk changes (new features, refactors, architecture changes, UI redesigns, deleting code) must NOT be merged — leave the PR open and note "NEEDS REVIEW" in the PR description.
+3. **One thing per session.** Pick one repo, one focused improvement. Do it well.
 3. **Build must pass.** Run `npm run build` (or equivalent) before committing. If tests exist, run them.
 4. **Browser test UI changes.** If you changed anything visual, spin up the app and verify with Playwright before committing.
 5. **Commit and push.** Don't leave work uncommitted. Create a PR with a clear description.
@@ -91,6 +92,19 @@ Before starting, read these files for deduplication and account context:
 - `{{REPOS_ROOT}}/privateContext/infrastructure.md` — server details, URLs, ports
 
 After completing work, **append to `{{REPOS_ROOT}}/privateContext/completed-work.md`** so future sessions know.
+
+## Output Format
+
+End your response with a structured summary so the runner can parse it:
+
+```
+SUMMARY: <one-line description of what was done>
+REPO: <repo name>
+PR: #<number> <merged|open-for-review>
+COST_NOTE: <any cost or rate limit observations>
+```
+
+If you left a PR open for review, include `NEEDS_REVIEW: PR #<number> in <repo> — <reason>`.
 
 ## Session Context
 
