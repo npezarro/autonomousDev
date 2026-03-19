@@ -14,7 +14,8 @@
     "waymo-sim",
     "llm-context",
     "runCoach",
-    "reddit-bottom-sheet-blocker"
+    "reddit-bottom-sheet-blocker",
+    "trustedCircle"
   ],
   "protected_repos": ["REDACTED_DISCORD_BOT_REPO", "agentGuidance", "autonomousDev"],
   "staging_only": true,
