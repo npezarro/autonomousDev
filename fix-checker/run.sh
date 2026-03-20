@@ -240,7 +240,10 @@ post_to_work_log() {
 STATUS=$(echo "$RESULT" | grep -oP 'STATUS:\s*\K\S+' | head -1 || echo "unknown")
 
 if [ "$STATUS" = "all_clear" ]; then
-  # Don't spam #work-log when nothing is broken
+  # Heartbeat every 10 runs so we know it's alive
+  if (( RUN_NUMBER % 10 == 0 )); then
+    post_to_work_log "💚 **Fix Checker heartbeat** — run #$RUN_NUMBER, all clear (cost: $COST)"
+  fi
   log "All clear — no Discord post"
 elif [ $EXIT_CODE -eq 0 ]; then
   post_to_work_log "🔧 **Fix Checker #$RUN_NUMBER** (cost: $COST)
