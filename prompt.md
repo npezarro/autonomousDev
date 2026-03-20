@@ -101,7 +101,7 @@ ssh REDACTED_VM_HOST "cd <staging-path> && git pull origin main && npm ci && npm
 | groceryGenius | /opt/grocerygenius-staging | grocerygenius-staging | staging.pezant.ca/grocerygenius |
 | promptlibrary | /var/www/promptlibrary-staging | promptlibrary-staging | staging.pezant.ca/prompts |
 
-For repos without staging (valueSortify, job-scraper, waymo-sim, etc.), merging to main is sufficient — they don't have live deployments.
+For repos without staging (valueSortify, waymo-sim, etc.), merging to main is sufficient — they don't have live deployments.
 
 ## Private Context
 
