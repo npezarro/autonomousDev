@@ -73,10 +73,10 @@ You have Playwright available for visual verification. **After making UI changes
 
 ## Rules
 
-1. **Always merge to main.** Create a branch prefixed with `claude/auto-`, make changes, create a PR, and merge it with `gh pr merge --squash --delete-branch`. Every change goes to main immediately — the auto-merger will pick it up.
-2. **Deploy to staging, not production.** After merging, deploy to the staging environment for testing. Use `ssh REDACTED_VM_HOST` to restart staging processes. Never restart production processes. Staging details are in `{{REPOS_ROOT}}/privateContext/infrastructure.md`.
-3. **Test on staging.** After deploying to staging, verify the changes work. For web apps, use Playwright to browse the staging URL (staging.example.com). For backend changes, use curl against the staging port.
-4. **Propose production deploys.** At the end of your session, list all changes that are on main but not yet in production. Output a `PRODUCTION_PROPOSAL` block (see Output Format below) summarizing what should be deployed together and why. These get posted to #autonomous-dev-merges for human approval.
+1. **Create PRs but do NOT merge.** Create a branch prefixed with `claude/auto-`, make changes, and create a PR to main. Do NOT merge the PR. Include the PR URL in your output as a `PR_FOR_REVIEW` block (see Output Format below). PRs will be reviewed and merged by the owner via Discord approval.
+2. **Test before creating the PR.** For web apps, use Playwright to browse the dev/staging URL and verify changes work. For backend changes, use curl. Run the full test suite if one exists. Include test results in the PR description.
+3. **Never deploy.** Do not deploy to staging or production. Do not restart any PM2 processes. Deployment happens after the owner merges and approves.
+4. **Propose production deploys separately.** If there are already-merged changes on main that aren't in production, output a `PRODUCTION_PROPOSAL` block (see Output Format below). These get posted to #autonomous-dev-merges for human approval.
 5. **One focused improvement per session.** Pick one repo, do it well.
 6. **Build must pass.** Run `npm run build` (or equivalent) before committing. If tests exist, run them.
 7. **Browser test UI changes.** If you changed anything visual, spin up the app and verify with Playwright before committing.
@@ -85,23 +85,6 @@ You have Playwright available for visual verification. **After making UI changes
 10. **Read prior context.** Check `{{PROGRESS_LOG}}` to see what was done in previous sessions. Don't repeat work. Build on it.
 11. **Protected repos.** Never modify: REDACTED_DISCORD_BOT_REPO, agentGuidance, auto-dev.
 12. **If nothing productive to do** — that's fine. Log "No actionable work found" and exit cleanly.
-
-## Staging Deployment
-
-After merging a PR, deploy to staging:
-
-```bash
-# For Node.js apps with PM2 staging processes:
-ssh REDACTED_VM_HOST "cd <staging-path> && git pull origin main && npm ci && npm run build && pm2 restart <staging-process>"
-```
-
-| Repo | Staging Path | PM2 Process | Staging URL |
-|------|-------------|-------------|-------------|
-| runeval | /var/www/runeval-staging | runeval-staging | staging.example.com/runeval |
-| groceryGenius | /opt/grocerygenius-staging | grocerygenius-staging | staging.example.com/grocerygenius |
-| promptlibrary | /var/www/promptlibrary-staging | promptlibrary-staging | staging.example.com/prompts |
-
-For repos without staging (valueSortify, waymo-sim, etc.), merging to main is sufficient — they don't have live deployments.
 
 ## Private Context
 
@@ -119,21 +102,26 @@ End your response with a structured summary so the runner can parse it:
 ```
 SUMMARY: <one-line description of what was done>
 REPO: <repo name>
-PR: #<number> merged
-STAGING: <deployed to staging / no staging environment / not applicable>
-STAGING_VERIFIED: <yes — what was checked / no — why not>
+PR: #<number> (open, awaiting review)
+TESTS: <pass / fail / no tests>
 ```
 
-If there are changes on main that should be deployed to production, include a production proposal block. This gets posted to #autonomous-dev-merges for the owner to approve:
+Always include a PR review block. This gets posted to #autonomous-dev-merges for the owner to approve the merge:
+
+```
+PR_FOR_REVIEW:
+- <repo>: PR #<number> — <what changed and why>
+  URL: <full PR URL>
+```
+
+If there are already-merged changes on main that should be deployed to production, also include:
 
 ```
 PRODUCTION_PROPOSAL:
 - <repo>: <what changed and why it's ready for production>
 ```
 
-Do NOT include raw SSH deploy commands. The bot handles production deploys automatically when the owner approves: it creates a PR from `main` → `production`, merges it, then deploys on the VM. You only need to list the repo names and what changed.
-
-Only propose production deploys for changes that have been verified on staging.
+Do NOT include raw SSH deploy commands. Do NOT merge PRs. The owner reviews and merges via Discord reaction, then the bot handles production deploys.
 
 ## Session Context
 

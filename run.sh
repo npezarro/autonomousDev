@@ -211,6 +211,16 @@ if [ $EXIT_CODE -eq 0 ]; then
 
 ${RESULT:0:1800}"
 
+  # Post PR review requests to #autonomous-dev-merges if any
+  PR_REVIEW=$(echo "$RESULT" | sed -n '/PR_FOR_REVIEW:/,/^$/p' | head -20)
+  if [ -n "$PR_REVIEW" ]; then
+    post_to_discord "$AUTONOMOUS_MERGES_WEBHOOK" "**Run #$RUN_NUMBER — PR For Review**
+
+$PR_REVIEW
+
+React with :white_check_mark: to approve and merge this PR."
+  fi
+
   # Post production proposals to #autonomous-dev-merges if any
   PROPOSAL=$(echo "$RESULT" | sed -n '/PRODUCTION_PROPOSAL:/,/^$/p' | head -20)
   if [ -n "$PROPOSAL" ]; then
@@ -218,7 +228,7 @@ ${RESULT:0:1800}"
 
 $PROPOSAL
 
-These changes have been merged to main and verified on staging.
+These changes are on main and verified on staging.
 React with :white_check_mark: to approve deploying to production."
   fi
 else
