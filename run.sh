@@ -53,6 +53,17 @@ fi
 echo $$ > "$LOCK_FILE"
 trap 'rm -f "$LOCK_FILE"' EXIT
 
+# ── Usage check: skip if Claude Max quota is near exhaustion ─────────
+
+USAGE_SCRIPT="$HOME/repos/privateContext/check-usage.sh"
+if [ -x "$USAGE_SCRIPT" ]; then
+  if ! "$USAGE_SCRIPT" --gate --quiet 2>/dev/null; then
+    log "SKIP: Claude Max usage over threshold — pausing until reset"
+    rm -f "$LOCK_FILE"
+    exit 0
+  fi
+fi
+
 # ── Helper: atomic JSON state write ──────────────────────────────────
 
 write_state() {
