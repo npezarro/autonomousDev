@@ -76,8 +76,11 @@ trap 'rm -f "$LOCK_FILE"' EXIT
 
 # ── Usage check: skip if Claude Max quota is near exhaustion ─────────
 
-USAGE_SCRIPT="$HOME/repos/privateContext/check-usage.sh"
-if [ -x "$USAGE_SCRIPT" ]; then
+USAGE_SCRIPT=""
+for p in "$HOME/repos/privateContext/check-usage.sh" "$HOME/privateContext/check-usage.sh" "$HOME/repos/claude-usage-monitor/check-usage.sh"; do
+  [ -x "$p" ] && USAGE_SCRIPT="$p" && break
+done
+if [ -n "$USAGE_SCRIPT" ]; then
   if ! "$USAGE_SCRIPT" --gate --quiet 2>/dev/null; then
     log "SKIP: Claude Max usage over threshold — pausing until reset"
     rm -f "$LOCK_FILE"
