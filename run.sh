@@ -188,6 +188,16 @@ else
   log "FAIL: Run #$RUN_NUMBER exited with code $EXIT_CODE (cost: $COST)"
 fi
 
+# ── Post to agent journal ────────────────────────────────────────────
+
+JOURNAL_SCRIPT="$HOME/repos/privateContext/journal-post.sh"
+if [ -x "$JOURNAL_SCRIPT" ] && [ $EXIT_CODE -eq 0 ] && [ -n "$RESULT" ]; then
+  JOURNAL_SUMMARY=$(echo "$RESULT" | head -c 400)
+  "$JOURNAL_SCRIPT" "discovery" "auto-dev run #$RUN_NUMBER: $JOURNAL_SUMMARY" || true
+elif [ -x "$JOURNAL_SCRIPT" ] && [ $EXIT_CODE -ne 0 ]; then
+  "$JOURNAL_SCRIPT" "blocker" "auto-dev run #$RUN_NUMBER failed (exit $EXIT_CODE, cost $COST)" || true
+fi
+
 # ── Post to Discord #autonomous-dev ──────────────────────────────────
 
 post_to_discord() {
