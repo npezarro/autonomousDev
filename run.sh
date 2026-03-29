@@ -16,7 +16,17 @@ LOCK_FILE="$SCRIPT_DIR/.running.lock"
 STATE_FILE="$SCRIPT_DIR/state.json"
 
 CLAUDE_BIN="${CLAUDE_BIN:-claude}"
-DRY_RUN="${1:-}"
+DRY_RUN=""
+FOCUS_REPO=""
+
+# Parse args
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --dry-run) DRY_RUN="--dry-run"; shift ;;
+    --repo) FOCUS_REPO="$2"; shift 2 ;;
+    *) shift ;;
+  esac
+done
 
 # ── Load secrets from .env ────────────────────────────────────────────
 
@@ -92,10 +102,41 @@ if [ -f "$LAST_RUN_LOG" ] && grep -q '"status":"rejected"' "$LAST_RUN_LOG" 2>/de
   exit 0
 fi
 
-# ── Build repo list ──────────────────────────────────────────────────
+# ── Build repo list (auto-discover new repos) ───────────────────────
 
 REPOS_ROOT=$(jq -r '.repos_root // "REDACTED_REPOS_ROOT"' "$CONFIG")
-REPOS=$(jq -r '.repos[]' "$CONFIG")
+PROTECTED=$(jq -r '.protected_repos[]' "$CONFIG" 2>/dev/null)
+CONFIGURED=$(jq -r '.repos[]' "$CONFIG")
+
+# Auto-discover: scan repos_root for git repos not in config or protected
+DISCOVERED=""
+for d in "$REPOS_ROOT"/*/; do
+  repo_name=$(basename "$d")
+  [ ! -d "$d/.git" ] && continue
+  echo "$CONFIGURED" | grep -qx "$repo_name" && continue
+  echo "$PROTECTED" | grep -qx "$repo_name" && continue
+  # Skip tiny repos (< 5 commits)
+  commit_count=$(cd "$d" && git rev-list --count HEAD 2>/dev/null || echo 0)
+  [ "$commit_count" -lt 5 ] && continue
+  DISCOVERED="$DISCOVERED$repo_name
+"
+done
+
+if [ -n "$DISCOVERED" ]; then
+  log "Auto-discovered repos: $(echo "$DISCOVERED" | tr '\n' ', ')"
+  # Add discovered repos to config
+  for repo in $DISCOVERED; do
+    jq --arg r "$repo" '.repos += [$r] | .repos |= unique' "$CONFIG" > "$CONFIG.tmp" && mv "$CONFIG.tmp" "$CONFIG"
+  done
+fi
+
+# If --repo flag is set, focus on that repo only
+if [ -n "$FOCUS_REPO" ]; then
+  REPOS="$FOCUS_REPO"
+  log "FOCUSED RUN: $FOCUS_REPO"
+else
+  REPOS=$(jq -r '.repos[]' "$CONFIG")
+fi
 
 REPO_LIST=""
 for repo in $REPOS; do
@@ -116,6 +157,30 @@ if [ -f "$PROGRESS_LOG" ]; then
   PRIOR_CONTEXT=$(tail -30 "$PROGRESS_LOG" 2>/dev/null || echo "No prior sessions.")
 fi
 
+# ── Inject priority context files ────────────────────────────────────
+
+PRIORITY_CONTEXT=""
+if [ -d "$SCRIPT_DIR/context" ]; then
+  for ctx in "$SCRIPT_DIR/context"/*-priority.md; do
+    [ -f "$ctx" ] || continue
+    # If focused on a specific repo, only include matching context
+    if [ -n "$FOCUS_REPO" ]; then
+      echo "$ctx" | grep -qi "$FOCUS_REPO" || continue
+    fi
+    PRIORITY_CONTEXT="$PRIORITY_CONTEXT
+
+$(cat "$ctx")
+"
+  done
+fi
+
+if [ -n "$PRIORITY_CONTEXT" ]; then
+  PRIOR_CONTEXT="$PRIOR_CONTEXT
+
+## Priority Tasks
+$PRIORITY_CONTEXT"
+fi
+
 # ── Build prompt ─────────────────────────────────────────────────────
 
 PROMPT=$(cat "$PROMPT_TEMPLATE")
@@ -129,7 +194,7 @@ PROMPT="${PROMPT//\{\{RUN_NUMBER\}\}/$RUN_NUMBER}"
 
 log "START: Run #$RUN_NUMBER (repos: $(echo "$REPOS" | wc -w), cap threshold: $CAP_THRESHOLD%)"
 
-if [ "$DRY_RUN" = "--dry-run" ]; then
+if [ -n "$DRY_RUN" ]; then
   log "DRY RUN — prompt would be:"
   echo "$PROMPT"
   exit 0
