@@ -7,3 +7,5 @@ fix-checker/state.json
 .running.lock
 state.json
 .env
+.state/
+logs/overnight-summary.log

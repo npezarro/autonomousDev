@@ -347,6 +347,18 @@ else
 Check logs at ~/repos/autonomousDev/logs/"
 fi
 
+# ── Post-run: trigger overnight summary if this is the morning window ─
+
+SUMMARY_SCRIPT="$SCRIPT_DIR/overnight-summary.sh"
+if [ -x "$SUMMARY_SCRIPT" ]; then
+  HOUR=$(date +%H)
+  # Between 6-8 AM local = end of overnight window, trigger summary
+  if [ "$HOUR" -ge 6 ] && [ "$HOUR" -le 8 ]; then
+    log "Morning window — triggering overnight summary"
+    "$SUMMARY_SCRIPT" &  # fire-and-forget, don't block next run
+  fi
+fi
+
 # ── Clean up old logs (keep last 50) ─────────────────────────────────
 
 ls -t "$LOGS_DIR"/run-*.log 2>/dev/null | tail -n +51 | xargs rm -f 2>/dev/null || true
