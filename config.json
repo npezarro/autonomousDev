@@ -9,11 +9,13 @@
     "activity-tracker",
     "valueSortify",
     "scripts",
-    "waymo-sim",
-    "llm-context",
+"llm-context",
     "runCoach",
     "reddit-bottom-sheet-blocker",
-    "social-tools"
+    "social-tools",
+    "botlink",
+    "claude-bakeoff",
+    "freeGames"
   ],
   "protected_repos": ["REDACTED_DISCORD_BOT_REPO", "agentGuidance", "auto-dev"],
   "staging_only": true,
