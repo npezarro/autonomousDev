@@ -63,17 +63,38 @@ fi
 echo $$ > "$LOCK_FILE"
 trap 'rm -f "$LOCK_FILE"' EXIT
 
-# ── Usage check: skip if Claude Max quota is near exhaustion ─────────
+# ── Usage check: live-poll usage and throttle dynamically ─────────────
 
 USAGE_SCRIPT=""
 for p in "$HOME/repos/privateContext/check-usage.sh" "$HOME/privateContext/check-usage.sh" "$HOME/repos/claude-usage-monitor/check-usage.sh"; do
   [ -x "$p" ] && USAGE_SCRIPT="$p" && break
 done
 if [ -n "$USAGE_SCRIPT" ]; then
-  if ! "$USAGE_SCRIPT" --gate --quiet 2>/dev/null; then
-    log "SKIP: Claude Max usage over threshold — pausing until reset"
+  # Force-refresh the cache to get live numbers
+  USAGE_OUTPUT=$("$USAGE_SCRIPT" --force 2>/dev/null || echo "")
+
+  # Extract the max percentage from the output (e.g. "5h: 14% ... 7d: 82%")
+  USAGE_5H=$(echo "$USAGE_OUTPUT" | grep -oP '5h: \K[0-9.]+' | head -1)
+  USAGE_7D=$(echo "$USAGE_OUTPUT" | grep -oP '7d: \K[0-9.]+' | head -1)
+  MAX_USAGE=$(python3 -c "print(max(${USAGE_5H:-0}, ${USAGE_7D:-0}))" 2>/dev/null || echo 0)
+
+  log "USAGE: 5h=${USAGE_5H:-?}% 7d=${USAGE_7D:-?}% max=${MAX_USAGE}%"
+
+  # Hard stop at 75%
+  if python3 -c "exit(0 if $MAX_USAGE >= 75 else 1)" 2>/dev/null; then
+    log "SKIP: Usage at ${MAX_USAGE}% (>= 75%) — hard stop"
     rm -f "$LOCK_FILE"
     exit 0
+  fi
+
+  # Soft throttle: at 50-75%, skip every other run to conserve budget
+  if python3 -c "exit(0 if $MAX_USAGE >= 50 else 1)" 2>/dev/null; then
+    if [ $(( RUN_NUMBER % 2 )) -eq 0 ]; then
+      log "SKIP: Usage at ${MAX_USAGE}% (50-75%) — throttling (even run #$RUN_NUMBER)"
+      rm -f "$LOCK_FILE"
+      exit 0
+    fi
+    log "THROTTLE: Usage at ${MAX_USAGE}% — running (odd run #$RUN_NUMBER)"
   fi
 fi
 
