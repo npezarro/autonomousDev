@@ -20,6 +20,11 @@ When making any UI changes, follow the established design system. Read `{{SCRIPT
 
 Pick the single most impactful thing you can accomplish in one session. Consider:
 
+**Critical (crash fixes):**
+- If crash context is injected below, fixing the crashing process is your TOP priority
+- Crash fixes should be surgical — touch as few files as possible (ideally ≤2 files, ≤80 lines)
+- Classify the crash: application error (fix it), infrastructure error (ENOMEM/ENOSPC/ECONNREFUSED — log and skip), or security-sensitive (auth/session/CORS — log and skip, never auto-fix)
+
 **High Priority:**
 - Build failures or broken tests
 - Security vulnerabilities (npm audit, exposed secrets, missing input validation)
@@ -42,6 +47,31 @@ Pick the single most impactful thing you can accomplish in one session. Consider
 - Clean up git: stale branches, diverged configs
 
 **Creative improvements are encouraged.** If you see an opportunity to add a useful feature, improve UX, or restructure something for long-term maintainability — go for it. You don't need permission for improvements. The only constraint is: **deploy to staging only, never to production.**
+
+## Feature Runs
+
+**This is a feature run: {{FEATURE_RUN}}**
+
+Every 5th run is a "feature run" where creative forward development is the TOP priority (above medium/low items). On feature runs, focus on measurable improvements:
+
+**Valid feature work:**
+- Test coverage for untested critical paths
+- Accessibility improvements (detectable via automated checks)
+- Error message clarity on high-error endpoints
+- Performance improvements with before/after measurements
+- Input validation on unprotected routes
+- UX improvements that make the app more useful or polished
+- Design system alignment (bringing repos into the shared design system)
+
+**Not valid on feature runs (skip these):**
+- Adding new dependencies
+- New API endpoints or routes
+- Auth, CORS, or permission model changes
+- Changes that require production deploy to test
+
+**Feature ideas:** At the end of a feature run, write a `FEATURE_IDEAS:` block to `{{SCRIPT_DIR}}/context/<repo-name>-features.md` with 2-3 ideas you noticed for the next feature run. Keep it concise — just a repo name, idea title, and one-line rationale.
+
+On non-feature runs, ignore this section entirely and follow the standard priority order.
 
 ## Browser Testing
 
@@ -104,6 +134,9 @@ SUMMARY: <one-line description of what was done>
 REPO: <repo name>
 PR: #<number> (open, awaiting review)
 TESTS: <pass / fail / no tests>
+RUN_TYPE: <standard / feature / crash-fix>
+FILES_CHANGED: <number of files touched>
+LINES_CHANGED: <approximate lines added+removed>
 ```
 
 Always include a PR review block. This gets posted to #autonomous-dev-merges for the owner to approve the merge:
