@@ -149,6 +149,27 @@ PROMPT="${PROMPT//\{\{GUIDANCE_DIR\}\}/$GUIDANCE_DIR}"
 PROMPT="${PROMPT//\{\{DATE\}\}/$(date -u +%Y-%m-%d)}"
 PROMPT="${PROMPT//\{\{RUN_NUMBER\}\}/$RUN_NUMBER}"
 
+# ── Inject crash context if any ────────────────────────────────────
+
+CRASH_CONTEXT=""
+if [ -d "$PARENT_DIR/context" ]; then
+  for ctx in "$PARENT_DIR/context"/*-priority.md; do
+    [ -f "$ctx" ] || continue
+    # Only inject crash-tagged context
+    if grep -q "crash-priority\|restart_time\|CRASH CONTEXT" "$ctx" 2>/dev/null; then
+      CRASH_CONTEXT="$CRASH_CONTEXT
+$(cat "$ctx")"
+    fi
+  done
+fi
+
+if [ -n "$CRASH_CONTEXT" ]; then
+  PROMPT="$PROMPT
+
+## Active Crash Context
+$CRASH_CONTEXT"
+fi
+
 MAX_TIMEOUT=$(jq -r '.max_timeout_seconds // 900' "$CONFIG" 2>/dev/null || echo 900)
 
 log "START: Fix-checker run #$RUN_NUMBER (repos: $(echo "$REPOS" | wc -w), timeout: ${MAX_TIMEOUT}s)"

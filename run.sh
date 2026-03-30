@@ -202,6 +202,35 @@ if [ -n "$PRIORITY_CONTEXT" ]; then
 $PRIORITY_CONTEXT"
 fi
 
+# ── Inject crash context from fix-checker ──────────────────────────
+
+CRASH_CONTEXT=""
+if [ -d "$SCRIPT_DIR/context" ]; then
+  for ctx in "$SCRIPT_DIR/context"/*-priority.md; do
+    [ -f "$ctx" ] || continue
+    if grep -q "crash-priority\|restart_time\|CRASH CONTEXT" "$ctx" 2>/dev/null; then
+      CRASH_CONTEXT="$CRASH_CONTEXT
+$(cat "$ctx")"
+    fi
+  done
+fi
+
+if [ -n "$CRASH_CONTEXT" ]; then
+  PRIOR_CONTEXT="$PRIOR_CONTEXT
+
+## Crash Context (from fix-checker)
+These processes are experiencing elevated restarts. Investigate the root cause and create a fix PR.
+$CRASH_CONTEXT"
+fi
+
+# ── Determine run mode (standard vs feature) ──────────────────────────
+
+FEATURE_RUN=false
+if (( RUN_NUMBER % 5 == 0 )); then
+  FEATURE_RUN=true
+  log "FEATURE RUN: Run #$RUN_NUMBER is a feature run (every 5th run)"
+fi
+
 # ── Build prompt ─────────────────────────────────────────────────────
 
 PROMPT=$(cat "$PROMPT_TEMPLATE")
@@ -212,8 +241,25 @@ PROMPT="${PROMPT//\{\{REPOS_ROOT\}\}/$REPOS_ROOT}"
 PROMPT="${PROMPT//\{\{SCRIPT_DIR\}\}/$SCRIPT_DIR}"
 PROMPT="${PROMPT//\{\{DATE\}\}/$(date -u +%Y-%m-%d)}"
 PROMPT="${PROMPT//\{\{RUN_NUMBER\}\}/$RUN_NUMBER}"
+PROMPT="${PROMPT//\{\{FEATURE_RUN\}\}/$FEATURE_RUN}"
 
-log "START: Run #$RUN_NUMBER (repos: $(echo "$REPOS" | wc -w), cap threshold: $CAP_THRESHOLD%)"
+# Inject feature ideas context on feature runs
+if [ "$FEATURE_RUN" = true ] && [ -d "$SCRIPT_DIR/context" ]; then
+  FEATURE_IDEAS=""
+  for fctx in "$SCRIPT_DIR/context"/*-features.md; do
+    [ -f "$fctx" ] || continue
+    FEATURE_IDEAS="$FEATURE_IDEAS
+$(cat "$fctx")"
+  done
+  if [ -n "$FEATURE_IDEAS" ]; then
+    PROMPT="$PROMPT
+
+## Feature Ideas (from previous runs)
+$FEATURE_IDEAS"
+  fi
+fi
+
+log "START: Run #$RUN_NUMBER (repos: $(echo "$REPOS" | wc -w), cap threshold: $CAP_THRESHOLD%, feature_run: $FEATURE_RUN)"
 
 if [ -n "$DRY_RUN" ]; then
   log "DRY RUN — prompt would be:"
@@ -287,6 +333,30 @@ if [ $EXIT_CODE -eq 0 ]; then
 else
   log "FAIL: Run #$RUN_NUMBER exited with code $EXIT_CODE (cost: $COST)"
 fi
+
+# ── Outcome tracking ─────────────────────────────────────────────
+
+OUTCOME_LOG="$LOGS_DIR/outcomes.jsonl"
+
+RUN_TYPE=$(echo "$RESULT" | grep -oP 'RUN_TYPE:\s*\K\S+' | head -1 || echo "standard")
+FILES_CHANGED=$(echo "$RESULT" | grep -oP 'FILES_CHANGED:\s*\K\d+' | head -1 || echo "0")
+LINES_CHANGED=$(echo "$RESULT" | grep -oP 'LINES_CHANGED:\s*\K\d+' | head -1 || echo "0")
+RESULT_REPO=$(echo "$RESULT" | grep -oP 'REPO:\s*\K\S+' | head -1 || echo "unknown")
+RESULT_PR=$(echo "$RESULT" | grep -oP 'PR:\s*#\K\d+' | head -1 || echo "0")
+
+jq -n \
+  --argjson run "$RUN_NUMBER" \
+  --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  --arg run_type "$RUN_TYPE" \
+  --arg repo "$RESULT_REPO" \
+  --argjson pr "${RESULT_PR:-0}" \
+  --argjson files "${FILES_CHANGED:-0}" \
+  --argjson lines "${LINES_CHANGED:-0}" \
+  --argjson exit_code "$EXIT_CODE" \
+  --arg cost "$COST" \
+  --argjson feature_run "$( [ "$FEATURE_RUN" = true ] && echo true || echo false )" \
+  '{run: $run, timestamp: $ts, run_type: $run_type, repo: $repo, pr: $pr, files_changed: $files, lines_changed: $lines, exit_code: $exit_code, cost: $cost, feature_run: $feature_run}' \
+  >> "$OUTCOME_LOG" 2>/dev/null || true
 
 # ── Post to agent journal ────────────────────────────────────────────
 

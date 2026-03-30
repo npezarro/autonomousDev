@@ -31,12 +31,40 @@ If the PR is from a `claude/auto-*` or `claude/fix-*` branch:
 - If CI fails, fix the issue, push, then merge.
 - If the PR is stale (>24h old), close it and clean up the branch.
 
-### 4. Crashed Staging Services
+### 4. Crashed Staging Services & Restart Storms
 SSH to the VM and check PM2:
 ```bash
 ssh REDACTED_VM_HOST "pm2 jlist" 2>/dev/null
 ```
-Look for processes with status !== "online" or high restart counts. For staging processes only (runeval-staging, grocerygenius-staging, promptlibrary-staging), attempt a restart. **Never touch production processes.**
+Look for processes with status !== "online" or high restart counts.
+
+**Restart Storm Detection:**
+If any process has `restart_time > 5`, it's a restart storm. Use the rollback script:
+```bash
+{{SCRIPT_DIR}}/restart-storm.sh <process-name>
+```
+This will:
+1. Stop the crashing process
+2. Roll back to the previous commit
+3. Restart and verify stability at T+30s
+4. Output ROLLBACK_SUCCESS or ROLLBACK_FAILED
+
+If the rollback succeeds, include the details in your output. If it fails, log as `found_unfixable` — the process needs manual intervention.
+
+**Important:** Only act on staging processes (runeval-staging, grocerygenius-staging, promptlibrary-staging). For production processes with high restarts, log the issue but **never touch production processes.**
+
+### 4b. Crash Context for Autonomous Dev
+When you detect elevated restarts (restart_time > 3 but process is still running — not a full storm), write a crash priority file for the autonomous-dev agent:
+```bash
+# Get sanitized error output (strip request bodies, JSON payloads — keep only stack traces and error types)
+ssh REDACTED_VM_HOST "pm2 logs <process-name> --err --lines 50 --nostream" 2>/dev/null
+```
+Write to `{{SCRIPT_DIR}}/../context/<repo-name>-priority.md` with:
+- Process name, restart count, uptime
+- Last 50 lines of stderr (sanitized — remove user data, request bodies, tokens)
+- Classification: auto-fixable (app error with stack trace) vs human-escalate (ENOMEM, ECONNREFUSED, ENOSPC) vs security-sensitive (auth/session/CORS errors)
+
+Only write auto-fixable crash context. For human-escalate and security-sensitive, just log and skip.
 
 ### 5. Recent Autonomous Dev Failures
 Read `{{PROGRESS_LOG}}` for recent entries. Look for:
