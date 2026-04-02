@@ -1,11 +1,10 @@
-logs/run-*.log
-logs/run-latest.log
-logs/runner.log
-fix-checker/logs/run-*.log
-fix-checker/logs/cron.log
+logs/
+fix-checker/logs/
 fix-checker/state.json
 .running.lock
 state.json
 .env
 .state/
-logs/overnight-summary.log
+SCRUB-LIST.md
+AUDIT-REPORT.md
+replacements.txt
