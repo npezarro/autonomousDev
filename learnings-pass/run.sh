@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# run.sh — Learnings pass agent runner.
-# Called by cron once daily. Reviews recent journal entries and merged PRs,
-# identifies gaps in agentGuidance, and pushes updates.
+# run.sh — Learning agent runner.
+# Called by cron every hour. Reviews recent activity across all repos,
+# identifies uncaptured learnings and user corrections not reflected
+# in rule sets, and stages PRs for review.
 #
 # Usage: ./run.sh [--dry-run]
 
@@ -19,8 +20,7 @@ DRY_RUN="${1:-}"
 
 # ── Load secrets ────────────────────────────────────────────────────
 
-
-# System-level env (journal channel ID, bot tokens)
+# System-level env (journal channel ID, bot tokens, webhooks)
 if [ -f "$HOME/.env" ]; then
   set -a
   source "$HOME/.env"
@@ -39,6 +39,7 @@ if [ -f "$SCRIPT_DIR/.env" ]; then
   set +a
 fi
 
+LEARNINGS_WEBHOOK="${DISCORD_LEARNINGS_WEBHOOK_URL:-}"
 AUTONOMOUS_DEV_WEBHOOK="${AUTONOMOUS_DEV_WEBHOOK:-}"
 
 # ── Logging ─────────────────────────────────────────────────────────
@@ -54,7 +55,7 @@ log() {
 if [ -f "$LOCK_FILE" ]; then
   LOCK_PID=$(cat "$LOCK_FILE" 2>/dev/null || echo "")
   if [ -n "$LOCK_PID" ] && kill -0 "$LOCK_PID" 2>/dev/null; then
-    log "SKIP: Previous learnings-pass still active (PID $LOCK_PID)"
+    log "SKIP: Previous learning agent still active (PID $LOCK_PID)"
     exit 0
   else
     log "WARN: Stale lock file found (PID $LOCK_PID dead), removing"
@@ -77,17 +78,25 @@ for sibling_lock in "$PARENT_DIR/.running.lock" "$PARENT_DIR/fix-checker/.runnin
   fi
 done
 
-# ── Usage check ─────────────────────────────────────────────────────
+# ── Usage check (90% threshold for learning agent) ──────────────────
 
 USAGE_SCRIPT=""
 for p in "$HOME/repos/privateContext/check-usage.sh" "$HOME/privateContext/check-usage.sh"; do
   [ -x "$p" ] && USAGE_SCRIPT="$p" && break
 done
 if [ -n "$USAGE_SCRIPT" ]; then
-  if ! "$USAGE_SCRIPT" --gate --quiet 2>/dev/null; then
-    log "SKIP: Claude Max usage over threshold"
+  # Get raw percentages and check 90% threshold
+  USAGE_OUTPUT=$("$USAGE_SCRIPT" --force 2>/dev/null || echo "")
+  USAGE_5H=$(echo "$USAGE_OUTPUT" | grep -oP '5h:\s*\K[\d.]+' | head -1 || echo "0")
+  USAGE_7D=$(echo "$USAGE_OUTPUT" | grep -oP '7d:\s*\K[\d.]+' | head -1 || echo "0")
+
+  MAX_USAGE=$(python3 -c "print(max(float('${USAGE_5H:-0}'), float('${USAGE_7D:-0}')))" 2>/dev/null || echo "0")
+
+  if python3 -c "exit(0 if float('$MAX_USAGE') >= 90 else 1)" 2>/dev/null; then
+    log "SKIP: Usage at ${MAX_USAGE}% (5h: ${USAGE_5H}%, 7d: ${USAGE_7D}%) — threshold is 90%"
     exit 0
   fi
+  log "Usage check: 5h=${USAGE_5H}%, 7d=${USAGE_7D}% (threshold: 90%)"
 fi
 
 # ── Helper: atomic JSON state write ─────────────────────────────────
@@ -118,7 +127,6 @@ fi
 JOURNAL_CHANNEL_ID="${DISCORD_JOURNAL_CHANNEL_ID:-}"
 
 if [ -n "$BOT_TOKEN" ] && [ -n "$JOURNAL_CHANNEL_ID" ]; then
-  # Fetch last 50 messages from #agent-journal
   RAW_MSGS=$(curl -sf --max-time 15 \
     -H "Authorization: Bot ${BOT_TOKEN}" \
     "https://discord.com/api/v10/channels/${JOURNAL_CHANNEL_ID}/messages?limit=50" 2>/dev/null || echo "[]")
@@ -180,6 +188,50 @@ if [ -d "$GUIDANCE_DIR/guidance" ]; then
   done)
 fi
 
+# ── Scan memory files for memory-only learnings ─────────────────────
+
+MEMORY_DIR="$HOME/.claude/projects/-mnt-c-Users-user/memory"
+MEMORY_SCAN=""
+if [ -d "$MEMORY_DIR" ]; then
+  MEMORY_SCAN=$(find "$MEMORY_DIR" -name "*.md" ! -name "MEMORY.md" -newer "$MEMORY_DIR/MEMORY.md" -mtime -7 2>/dev/null | while read f; do
+    echo "### $(basename "$f")"
+    head -20 "$f"
+    echo ""
+  done 2>/dev/null || echo "")
+
+  # If no files newer than MEMORY.md, scan all recent files
+  if [ -z "$MEMORY_SCAN" ]; then
+    MEMORY_SCAN=$(find "$MEMORY_DIR" -name "*.md" ! -name "MEMORY.md" -mtime -7 2>/dev/null | while read f; do
+      echo "### $(basename "$f")"
+      head -20 "$f"
+      echo ""
+    done 2>/dev/null || echo "")
+  fi
+
+  MEMORY_COUNT=$(echo "$MEMORY_SCAN" | grep -c "^###" || echo 0)
+  log "Scanned $MEMORY_COUNT memory files from last 7 days"
+fi
+
+# ── Collect recent git activity (last 24h across all repos) ──────────
+
+GIT_ACTIVITY=""
+GIT_SINCE=$(date -u -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-24H +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "")
+
+if [ -n "$GIT_SINCE" ]; then
+  for repo in $ALL_REPOS; do
+    repo_dir="$REPOS_ROOT/$repo"
+    [ -d "$repo_dir/.git" ] || continue
+    COMMITS=$(cd "$repo_dir" && git log --since="$GIT_SINCE" --oneline --all 2>/dev/null | head -20 || echo "")
+    if [ -n "$COMMITS" ]; then
+      GIT_ACTIVITY="$GIT_ACTIVITY
+### $repo
+$COMMITS
+"
+    fi
+  done
+  log "Collected git activity from repos"
+fi
+
 # ── Build prompt ────────────────────────────────────────────────────
 
 PROMPT=$(cat "$PROMPT_TEMPLATE")
@@ -190,10 +242,12 @@ PROMPT="${PROMPT//\{\{GUIDANCE_DIR\}\}/$GUIDANCE_DIR}"
 PROMPT="${PROMPT//\{\{REPOS_ROOT\}\}/$REPOS_ROOT}"
 PROMPT="${PROMPT//\{\{DATE\}\}/$(date -u +%Y-%m-%d)}"
 PROMPT="${PROMPT//\{\{RUN_NUMBER\}\}/$RUN_NUMBER}"
+PROMPT="${PROMPT//\{\{MEMORY_SCAN\}\}/$MEMORY_SCAN}"
+PROMPT="${PROMPT//\{\{GIT_ACTIVITY\}\}/$GIT_ACTIVITY}"
 
 MAX_TIMEOUT=1800
 
-log "START: Learnings pass run #$RUN_NUMBER (timeout: ${MAX_TIMEOUT}s)"
+log "START: Learning agent run #$RUN_NUMBER (timeout: ${MAX_TIMEOUT}s)"
 
 if [ "$DRY_RUN" = "--dry-run" ]; then
   log "DRY RUN — prompt would be:"
@@ -229,7 +283,7 @@ timeout "$MAX_TIMEOUT" "$CLAUDE_BIN" \
 EXIT_CODE=$?
 
 if [ $EXIT_CODE -eq 124 ]; then
-  log "TIMEOUT: Learnings pass run #$RUN_NUMBER exceeded ${MAX_TIMEOUT}s timeout"
+  log "TIMEOUT: Learning agent run #$RUN_NUMBER exceeded ${MAX_TIMEOUT}s timeout"
 fi
 
 # ── Extract result ──────────────────────────────────────────────────
@@ -257,39 +311,50 @@ write_state "$(jq -n \
 # ── Log result ──────────────────────────────────────────────────────
 
 if [ $EXIT_CODE -eq 0 ]; then
-  log "DONE: Learnings pass run #$RUN_NUMBER completed (cost: $COST)"
+  log "DONE: Learning agent run #$RUN_NUMBER completed (cost: $COST)"
   log "Result preview: ${RESULT:0:200}"
 else
-  log "FAIL: Learnings pass run #$RUN_NUMBER exited with code $EXIT_CODE (cost: $COST)"
+  log "FAIL: Learning agent run #$RUN_NUMBER exited with code $EXIT_CODE (cost: $COST)"
 fi
 
-# ── Post to Discord ─────────────────────────────────────────────────
+# ── Post to Discord #learnings ──────────────────────────────────────
 
 post_to_discord() {
-  local webhook="$1" msg="$2"
+  local webhook="$1" msg="$2" username="${3:-Learning Agent}"
   [ -z "$webhook" ] && return 0
   msg="${msg:0:1990}"
   local payload
-  payload=$(jq -n --arg content "$msg" '{"username": "Learnings Pass", "content": $content}')
+  payload=$(jq -n --arg content "$msg" --arg user "$username" '{"username": $user, "content": $content}')
   curl -s -X POST "$webhook" \
     -H "Content-Type: application/json" \
     -d "$payload" > /dev/null 2>&1 || true
 }
 
 GUIDANCE_UPDATED=$(echo "$RESULT" | grep -oP 'GUIDANCE_UPDATED:\s*\K\S+' | head -1 || echo "unknown")
+CORRECTIONS_FOUND=$(echo "$RESULT" | grep -oP 'CORRECTIONS_FOUND:\s*\K\S+' | head -1 || echo "0")
+MEMORY_GAPS=$(echo "$RESULT" | grep -oP 'MEMORY_GAPS:\s*\K\S+' | head -1 || echo "0")
+SUGGESTIONS=$(echo "$RESULT" | grep -oP 'SUGGESTIONS:\s*\K\S+' | head -1 || echo "0")
+
+# Determine which webhook to use (prefer #learnings, fall back to #autonomous-dev)
+POST_WEBHOOK="${LEARNINGS_WEBHOOK:-$AUTONOMOUS_DEV_WEBHOOK}"
 
 if [ "$GUIDANCE_UPDATED" = "no" ] || [ "$GUIDANCE_UPDATED" = "none" ]; then
-  # Only heartbeat every 7 runs
-  if (( RUN_NUMBER % 7 == 0 )); then
-    post_to_discord "$AUTONOMOUS_DEV_WEBHOOK" "📚 **Learnings Pass heartbeat** — run #$RUN_NUMBER, no gaps found (cost: $COST)"
+  # Only heartbeat every 12 runs (every 12 hours at hourly cadence)
+  if (( RUN_NUMBER % 12 == 0 )); then
+    post_to_discord "$POST_WEBHOOK" "📚 **Learning Agent heartbeat** — run #$RUN_NUMBER, no gaps found (cost: $COST)"
   fi
   log "No guidance updates — no Discord post"
 elif [ $EXIT_CODE -eq 0 ]; then
-  post_to_discord "$AUTONOMOUS_DEV_WEBHOOK" "📚 **Learnings Pass #$RUN_NUMBER** (cost: $COST)
+  SUMMARY="📚 **Learning Agent #$RUN_NUMBER** (cost: $COST)"
+  [ "$CORRECTIONS_FOUND" != "0" ] && SUMMARY="$SUMMARY | ⚠️ $CORRECTIONS_FOUND uncaptured corrections"
+  [ "$MEMORY_GAPS" != "0" ] && SUMMARY="$SUMMARY | 🔄 $MEMORY_GAPS memory-only learnings migrated"
+  [ "$SUGGESTIONS" != "0" ] && SUMMARY="$SUMMARY | 💡 $SUGGESTIONS suggestions"
 
-${RESULT:0:1800}"
+  post_to_discord "$POST_WEBHOOK" "$SUMMARY
+
+${RESULT:0:1600}"
 else
-  post_to_discord "$AUTONOMOUS_DEV_WEBHOOK" "⚠️ **Learnings Pass #$RUN_NUMBER FAILED** (exit: $EXIT_CODE, cost: $COST)
+  post_to_discord "$POST_WEBHOOK" "⚠️ **Learning Agent #$RUN_NUMBER FAILED** (exit: $EXIT_CODE, cost: $COST)
 
 Check logs at ~/repos/auto-dev/learnings-pass/logs/"
 fi
@@ -299,9 +364,9 @@ fi
 JOURNAL_SCRIPT="$HOME/repos/privateContext/journal-post.sh"
 if [ -x "$JOURNAL_SCRIPT" ] && [ $EXIT_CODE -eq 0 ] && [ "$GUIDANCE_UPDATED" != "no" ] && [ "$GUIDANCE_UPDATED" != "none" ]; then
   JOURNAL_SUMMARY=$(echo "$RESULT" | head -c 400)
-  "$JOURNAL_SCRIPT" "discovery" "learnings-pass run #$RUN_NUMBER: $JOURNAL_SUMMARY" || true
+  "$JOURNAL_SCRIPT" "discovery" "learning-agent run #$RUN_NUMBER: $JOURNAL_SUMMARY" || true
 fi
 
-# ── Clean up old logs (keep last 20) ────────────────────────────────
+# ── Clean up old logs (keep last 30) ────────────────────────────────
 
-ls -t "$LOGS_DIR"/run-*.log 2>/dev/null | tail -n +21 | xargs rm -f 2>/dev/null || true
+ls -t "$LOGS_DIR"/run-*.log 2>/dev/null | tail -n +31 | xargs rm -f 2>/dev/null || true
