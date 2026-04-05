@@ -1,7 +1,7 @@
 # context.md
 
 ## Last Updated
-2026-04-05 — Learning agent upgraded to hourly 5-pass review system
+2026-04-05 — Follow-up: added #cli-interactions scanning, validated run #2, closed open items
 
 ## Current State
 - **auto-dev** is the autonomous agent runner, executing cron-based jobs on the GCP VM
@@ -20,12 +20,11 @@
 - First automated run found 4 real gaps and created PRs #67-69 on agentGuidance
 
 ## Open Work
-- **Usage gate parsing fragility:** run.sh parses check-usage.sh output with grep -oP. If output format changes, silently passes (defaults to 0%). Needs validation check.
-- **Correction detection scope:** Pass 3 needs Discord bot token + #cli-interactions channel ID to scan messages. Verify these are available in the agent's env.
-- **Auto-commit graduation:** After ~10 successful staged PRs, consider switching to auto-commit for guidance-only changes.
-- **agent.md line budget:** At ~80 lines with 100-line ceiling. Learning agent flagged this (S2). Consider extracting sections to guidance files.
+- **Auto-commit graduation:** 2 of ~10 runs complete. PRs #67-71 all successful. Consider switching after ~10.
+- **S6: Branch name collision:** Runner could fail if previous learnings branch isn't cleaned up. Add pre-flight check.
+- **Usage gate validation:** Parsing works (tested) but no fallback if output format changes. Low priority.
 
-Full session closeout: `privateContext/deliverables/closeouts/2026-04-05-learning-system-full-session.md`
+Full session closeout: `privateContext/deliverables/closeouts/2026-04-05-learning-system-followup.md`
 
 ## Environment Notes
 - **Deploy target:** GCP VM (example.com)
