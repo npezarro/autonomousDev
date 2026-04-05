@@ -20,6 +20,10 @@ You are a dedicated learning agent that reviews recent activity across all repos
 
 {{MEMORY_SCAN}}
 
+### Recent #cli-interactions Messages (last 24h — for correction detection)
+
+{{CLI_INTERACTIONS}}
+
 ### Recent Git Activity (last 24h across all repos)
 
 {{GIT_ACTIVITY}}
