@@ -47,3 +47,16 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Suggestion:** Add a cross-reference line in the VM SSH section: "See also: Python Version Compatibility (above) for type annotation restrictions."
 
 ---
+
+## 2026-04-05 — Run #3
+
+### S8: run.sh memory scan checks only one project directory
+**File:** `autonomousDev/learnings-pass/run.sh` (line 226)
+**Issue:** `MEMORY_DIR` is hardcoded to `$HOME/.claude/projects/-mnt-c-Users-npeza/memory`. Claude Code creates separate memory directories per working directory (e.g., `-home-npezarro/memory/`, `-home-npezarro-repos-centralDiscord/memory/`, etc.). The runner only scans one, missing memories created from sessions started in other directories.
+**Suggestion:** Glob all memory directories: `find $HOME/.claude/projects/*/memory/ -name "*.md" ! -name "MEMORY.md" -mtime -7` to catch memories from all session contexts.
+
+### S9: S5 from run #2 (learning-agent.md contradiction) has been resolved
+**File:** `agentGuidance/guidance/learning-agent.md` (line 61)
+**Status:** The "What It Does NOT Do" section now correctly states "Commit directly to main (all changes go on branches with PRs for review)". S5 can be considered addressed.
+
+---
