@@ -154,6 +154,39 @@ else
   log "WARN: No bot token or journal channel ID — journal entries unavailable"
 fi
 
+# ── Fetch #cli-interactions messages (for correction detection) ──────
+
+CLI_CHANNEL_ID="${DISCORD_CLI_INTERACTIONS_CHANNEL_ID:-}"
+CLI_INTERACTIONS=""
+
+if [ -n "$BOT_TOKEN" ] && [ -n "$CLI_CHANNEL_ID" ]; then
+  RAW_CLI=$(curl -sf --max-time 15 \
+    -H "Authorization: Bot ${BOT_TOKEN}" \
+    "https://discord.com/api/v10/channels/${CLI_CHANNEL_ID}/messages?limit=50" 2>/dev/null || echo "[]")
+
+  CLI_INTERACTIONS=$(echo "$RAW_CLI" | python3 -c "
+import json, sys
+from datetime import datetime, timedelta, timezone
+cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+msgs = json.load(sys.stdin)
+for m in msgs:
+    ts = m.get('timestamp', '')
+    try:
+        dt = datetime.fromisoformat(ts.replace('+00:00', '+00:00'))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+    except:
+        continue
+    if dt >= cutoff:
+        print(m['content'][:600])
+        print()
+" 2>/dev/null || echo "")
+
+  log "Fetched cli-interactions: $(echo "$CLI_INTERACTIONS" | grep -c '^.' || echo 0) messages"
+else
+  log "WARN: No bot token or cli-interactions channel ID — correction detection limited"
+fi
+
 # ── Fetch recent merged PRs across repos ────────────────────────────
 
 REPOS_ROOT="$HOME/repos"
@@ -244,6 +277,7 @@ PROMPT="${PROMPT//\{\{DATE\}\}/$(date -u +%Y-%m-%d)}"
 PROMPT="${PROMPT//\{\{RUN_NUMBER\}\}/$RUN_NUMBER}"
 PROMPT="${PROMPT//\{\{MEMORY_SCAN\}\}/$MEMORY_SCAN}"
 PROMPT="${PROMPT//\{\{GIT_ACTIVITY\}\}/$GIT_ACTIVITY}"
+PROMPT="${PROMPT//\{\{CLI_INTERACTIONS\}\}/$CLI_INTERACTIONS}"
 
 MAX_TIMEOUT=1800
 
