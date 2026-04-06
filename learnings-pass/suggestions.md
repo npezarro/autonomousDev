@@ -81,3 +81,17 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **File:** `agentGuidance/guidance/session-wrapup.md`
 **Issue:** The `--closeout` and `--deep-closeout` text triggers (which any agent should respond to) were documented only in memory (`feedback_closeout_report.md`), not in any guidance file. Agents without memory access wouldn't know to handle these triggers.
 **Suggestion:** Added "Trigger Conventions" section to session-wrapup.md documenting both triggers and their expected behavior. (Done in this run.)
+
+---
+
+## 2026-04-06 — Run #6
+
+### S15: freeGames CLAUDE.md missing Discord webhook env var and integration details
+**File:** `freeGames/CLAUDE.md`
+**Issue:** Discord integration was listed as a single line ("Discord reporting: src/discord.js") with no details on the webhook env var (`DISCORD_CLAIMS_WEBHOOK_URL`), embed color coding, or two-level reporting structure (per-claim + run summary). An agent adding a new platform or debugging claim notifications would miss this.
+**Suggestion:** Added Discord reporting details and @match expansion pattern to CLAUDE.md. (Done in this run.)
+
+### S16: youtubeSpeedSetAndRemember CLAUDE.md had duplicate rule numbers
+**File:** `youtubeSpeedSetAndRemember/CLAUDE.md`
+**Issue:** Rules 6 and 7 were duplicated (two "6." entries, two "7." entries) due to previous editing without renumbering. This makes the rules ambiguous and hard to reference.
+**Suggestion:** Fixed numbering (now rules 1-9) as part of adding the video src detection rule. (Done in this run.)
