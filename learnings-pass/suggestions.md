@@ -139,3 +139,17 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 ### S23: claude-auto-merger CLAUDE.md created (S17 resolved)
 **File:** `claude-auto-merger/CLAUDE.md`
 **Status:** Created in this run. Documents auto-merge criteria, learnings PR exception, crash-fix rate limiting, environment variables, and key lib.js functions.
+
+---
+
+## 2026-04-06 — Run #10
+
+### S24: claude-bakeoff has no CLAUDE.md despite 15 environments
+**File:** `claude-bakeoff/CLAUDE.md` (does not exist)
+**Issue:** claude-bakeoff has 15 environments (baseline, buying-*, iterate-*, persona-*, voice-*, linkedin-*), active task definitions, and is referenced by `agentGuidance/guidance/ab-testing.md`. Yet the repo has no CLAUDE.md. An agent opening the repo to create a new environment or run a bakeoff lacks context on folder conventions, output storage rules (results in private repos, not in claude-bakeoff), and the arena CLI workflow.
+**Suggestion:** Create a CLAUDE.md documenting: environment folder structure, task.yaml schema, output storage rules (private repos only), arena CLI commands, and the 4-path bakeoff pattern.
+
+### S25: discord-bot CLAUDE.md missing channel watchers and post-job hooks
+**File:** `discord-bot/CLAUDE.md`
+**Issue:** The CLAUDE.md documented architecture (entry point, deploy queue, session pool) and bot-specific rules, but omitted two active subsystems: (1) channel watchers that auto-route messages to specific agent cwds (#buying-guides → buying-assistant), and (2) post-job hooks (`postJobHooks.js`) that auto-commit+push and archive to Drive after job completion. An agent modifying channel routing or adding a new post-job hook wouldn't know these systems exist.
+**Suggestion:** Added channel watcher list and post-job hooks section to CLAUDE.md. (Done in this run.)
