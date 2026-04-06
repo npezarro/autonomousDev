@@ -153,3 +153,21 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **File:** `discord-bot/CLAUDE.md`
 **Issue:** The CLAUDE.md documented architecture (entry point, deploy queue, session pool) and bot-specific rules, but omitted two active subsystems: (1) channel watchers that auto-route messages to specific agent cwds (#buying-guides → buying-assistant), and (2) post-job hooks (`postJobHooks.js`) that auto-commit+push and archive to Drive after job completion. An agent modifying channel routing or adding a new post-job hook wouldn't know these systems exist.
 **Suggestion:** Added channel watcher list and post-job hooks section to CLAUDE.md. (Done in this run.)
+
+---
+
+## 2026-04-06 — Run #11
+
+### S26: comprehensive-closeout.md hardcoded memory path
+**File:** `agentGuidance/guidance/comprehensive-closeout.md` (line 93)
+**Issue:** The Memory Update step hardcodes `~/.claude/projects/-mnt-c-Users-user/memory/` as the memory path. Claude Code memory paths are derived from the working directory, so sessions started from `/home/user` (WSL home) use `-home-user` while sessions from `/mnt/c/Users/user` use `-mnt-c-Users-user`. Any agent following this guidance from the wrong working directory would write to the wrong memory path.
+**Suggestion:** Replace the hardcoded path with a generic instruction: "Update the relevant project memory file in `~/.claude/projects/<project-path>/memory/`" and note that the project-path is derived from the working directory.
+
+### S27: run.sh memory scan still only checks one path (S8 repeat)
+**File:** `auto-dev/learnings-pass/run.sh` (line ~225)
+**Issue:** `MEMORY_DIR` is hardcoded to `$HOME/.claude/projects/-mnt-c-Users-user/memory`. This means the learning agent only scans memory files from Windows-path sessions. Memories saved from Linux-home sessions (`-home-user`) are invisible. S8 (run #3) flagged this; still unfixed after 8 runs.
+**Suggestion:** Scan all project memory directories: `find $HOME/.claude/projects/*/memory -name "*.md" 2>/dev/null` or maintain a list of known project paths.
+
+### S28: feedback_bridge_vm_local migrated to deployment.md
+**File:** `agentGuidance/guidance/deployment.md`
+**Status:** Migrated in this run. Added "Check the Server Before Asking" section — SSH into VM for env vars, configs, logs before asking the user. Previously memory-only.
