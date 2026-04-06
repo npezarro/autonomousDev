@@ -41,6 +41,7 @@ fi
 
 LEARNINGS_WEBHOOK="${DISCORD_LEARNINGS_WEBHOOK_URL:-}"
 AUTONOMOUS_DEV_WEBHOOK="${AUTONOMOUS_DEV_WEBHOOK:-}"
+AUTONOMOUS_MERGES_WEBHOOK="${AUTONOMOUS_MERGES_WEBHOOK:-}"
 
 # ── Logging ─────────────────────────────────────────────────────────
 
@@ -391,6 +392,20 @@ else
   post_to_discord "$POST_WEBHOOK" "⚠️ **Learning Agent #$RUN_NUMBER FAILED** (exit: $EXIT_CODE, cost: $COST)
 
 Check logs at ~/repos/auto-dev/learnings-pass/logs/"
+fi
+
+# ── Post PR review requests to #autonomous-dev-merges ──────────────
+
+if [ $EXIT_CODE -eq 0 ]; then
+  PR_REVIEW=$(echo "$RESULT" | sed -n '/PR_FOR_REVIEW:/,/^$/p' | head -20)
+  if [ -n "$PR_REVIEW" ]; then
+    post_to_discord "$AUTONOMOUS_MERGES_WEBHOOK" "📚 **Learning Agent #$RUN_NUMBER -- PR For Review**
+
+$PR_REVIEW
+
+React with :white_check_mark: to approve and merge."
+    log "Posted PR review request to #autonomous-dev-merges"
+  fi
 fi
 
 # ── Post to agent journal ───────────────────────────────────────────
