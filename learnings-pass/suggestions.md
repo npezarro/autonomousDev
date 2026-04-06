@@ -196,3 +196,21 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **File:** `auto-dev` repo
 **Issue:** Branch `claude/learnings-12` contains S29-S30 but was based on pre-run-#11 main. After run #11 merged, the branch diverged and the auto-merger couldn't merge it (no PR was created or it failed). S29-S30 content was stranded. Run #13 incorporated the content and the branch can be cleaned up.
 **Suggestion:** Add a pre-flight check to the learnings-pass runner: before creating a new branch, check for stale unmerged branches (`git branch -r --no-merged origin/main | grep learnings`) and either rebase them or warn.
+
+---
+
+## 2026-04-06 — Run #14
+
+### S33: discord-bot CLAUDE.md missing quality gap fix subsystems
+**File:** `discord-bot/CLAUDE.md`
+**Issue:** The Discord quality gap fix (commit c86983c) added URL pre-fetching, bot output stripping, and route classifier heuristics to discord-bot, but CLAUDE.md wasn't updated. context.md was updated but CLAUDE.md is what agents read first.
+**Suggestion:** Added URL Pre-Fetching & Retry Detection section to CLAUDE.md. (Done in this run.)
+
+### S34: run.sh memory scan single-path — 5th time flagged (S8/S27 repeat)
+**File:** `auto-dev/learnings-pass/run.sh` (line ~225)
+**Issue:** `MEMORY_DIR` is hardcoded to `$HOME/.claude/projects/-mnt-c-Users-user/memory`. Learning agent misses memories from Linux-home sessions (`-home-user`, `-home-user-repos`, `-home-user-repos-discord-bot`). This run found 2 memory-only items in those paths that had been invisible to prior scans.
+**Suggestion:** Replace hardcoded path with: `find $HOME/.claude/projects/*/memory -name "*.md" 2>/dev/null`. This is the most-repeated unfixed suggestion — consider prioritizing it.
+
+### S35: feedback_wordpress_posting.md migrated to wordpress-auto-posting.md
+**File:** `agentGuidance/guidance/wordpress-auto-posting.md`
+**Status:** Added "Manual / Agent-Initiated Posts" section documenting WP-CLI and local REST API approaches for non-hook posting. (Done in this run.)
