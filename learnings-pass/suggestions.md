@@ -47,3 +47,20 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Suggestion:** Add a cross-reference line in the VM SSH section: "See also: Python Version Compatibility (above) for type annotation restrictions."
 
 ---
+
+## 2026-04-06 — Run #4
+
+### S10: youtubeSpeedSetAndRemember CLAUDE.md is just a bootstrap template
+**File:** `youtubeSpeedSetAndRemember/CLAUDE.md`
+**Issue:** The CLAUDE.md was a generic agent bootstrap (fetch agent.md, fallback rules) with zero repo-specific context. v18.0-18.2 demonstrated recurring YouTube DOM breakage patterns that agents need upfront. Any agent working in this repo would not know about DOM resilience requirements.
+**Suggestion:** Replaced with proper CLAUDE.md containing YouTube DOM resilience rules, architecture overview, and key files. (Done in this run.)
+
+### S11: tampermonkey.md missing YouTube DOM resilience section
+**File:** `agentGuidance/guidance/tampermonkey.md`
+**Issue:** Four commits (v18.0-18.2) dealt with YouTube DOM changes breaking the userscript. The patterns (use visibility checks, target stable IDs, test mobile separately) are cross-project and apply to any YouTube-targeting TM script, but were not in tampermonkey.md.
+**Suggestion:** Added "YouTube DOM Resilience" section with defensive coding patterns. (Done in this run.)
+
+### S12: agent.md missing "test before reporting" principle
+**File:** `agentGuidance/agent.md`
+**Issue:** The `feedback_test_before_asking` memory (user corrected agent for pushing changes and asking user to test instead of verifying first) existed only in memory. No corresponding rule in agent.md or any guidance file. This is a cross-project behavioral pattern.
+**Suggestion:** Added to Core Principles: "Test before reporting. Verify changes yourself before asking the user to test." (Done in this run.)
