@@ -95,3 +95,17 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **File:** `youtubeSpeedSetAndRemember/CLAUDE.md`
 **Issue:** Rules 6 and 7 were duplicated (two "6." entries, two "7." entries) due to previous editing without renumbering. This makes the rules ambiguous and hard to reference.
 **Suggestion:** Fixed numbering (now rules 1-9) as part of adding the video src detection rule. (Done in this run.)
+
+---
+
+## 2026-04-06 — Run #7
+
+### S17: claude-auto-merger has no CLAUDE.md
+**File:** `claude-auto-merger/CLAUDE.md` (does not exist)
+**Issue:** The auto-merger is actively used (processes learnings PRs, handles approval flows) and recently added a rule to skip auto-merge for learning agent PRs. Without a CLAUDE.md, agents working on it lack context about its auto-merge criteria, webhook integration, and the approval exception for learnings PRs.
+**Suggestion:** Create a CLAUDE.md documenting: auto-merge criteria (PR format, label requirements), the learnings-PR exception, webhook configuration, and which repos it watches.
+
+### S18: browser-agent CLAUDE.md missing multi-tab orchestration docs
+**File:** `browser-agent/CLAUDE.md`
+**Issue:** v1.5.0 added `ensure`, `close`, and `openTab` commands for multi-tab workflows, but CLAUDE.md only documented single-tab architecture. Agents using browser-cli for multi-step flows (e.g., claim on one site, redeem on another) wouldn't know about idempotent tab management.
+**Suggestion:** Added multi-tab orchestration section to CLAUDE.md. (Done in this run.)
