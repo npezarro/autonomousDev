@@ -64,3 +64,20 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **File:** `agentGuidance/agent.md`
 **Issue:** The `feedback_test_before_asking` memory (user corrected agent for pushing changes and asking user to test instead of verifying first) existed only in memory. No corresponding rule in agent.md or any guidance file. This is a cross-project behavioral pattern.
 **Suggestion:** Added to Core Principles: "Test before reporting. Verify changes yourself before asking the user to test." (Done in this run.)
+
+---
+
+## 2026-04-06 — Run #5
+
+### S13: learning-agent.md design doc has stale values
+**File:** `agentGuidance/guidance/learning-agent.md`
+**Issue:** Three values in the design doc no longer match reality:
+  - Line 17: Location says `~/repos/autonomousDev/learning-agent/` but actual location is `~/repos/autonomousDev/learnings-pass/`
+  - Line 19: Timeout says "20 minutes" but run.sh uses `MAX_TIMEOUT=1800` (30 minutes)
+  - Line 18: Frequency says "every 2-4 hours" but decisions section (line 110) correctly says hourly at :43
+**Suggestion:** Update the Architecture section to match current implementation. The Decisions section at the bottom is correct; the top-level description drifted.
+
+### S14: session-wrapup.md lacked --closeout/--deep-closeout trigger docs
+**File:** `agentGuidance/guidance/session-wrapup.md`
+**Issue:** The `--closeout` and `--deep-closeout` text triggers (which any agent should respond to) were documented only in memory (`feedback_closeout_report.md`), not in any guidance file. Agents without memory access wouldn't know to handle these triggers.
+**Suggestion:** Added "Trigger Conventions" section to session-wrapup.md documenting both triggers and their expected behavior. (Done in this run.)
