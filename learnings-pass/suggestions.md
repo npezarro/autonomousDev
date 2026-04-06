@@ -149,8 +149,8 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** claude-bakeoff has 15 environments (baseline, buying-*, iterate-*, persona-*, voice-*, linkedin-*), active task definitions, and is referenced by `agentGuidance/guidance/ab-testing.md`. Yet the repo has no CLAUDE.md. An agent opening the repo to create a new environment or run a bakeoff lacks context on folder conventions, output storage rules (results in private repos, not in claude-bakeoff), and the arena CLI workflow.
 **Suggestion:** Create a CLAUDE.md documenting: environment folder structure, task.yaml schema, output storage rules (private repos only), arena CLI commands, and the 4-path bakeoff pattern.
 
-### S25: centralDiscord CLAUDE.md missing channel watchers and post-job hooks
-**File:** `centralDiscord/CLAUDE.md`
+### S25: discord-bot CLAUDE.md missing channel watchers and post-job hooks
+**File:** `discord-bot/CLAUDE.md`
 **Issue:** The CLAUDE.md documented architecture (entry point, deploy queue, session pool) and bot-specific rules, but omitted two active subsystems: (1) channel watchers that auto-route messages to specific agent cwds (#buying-guides → buying-assistant), and (2) post-job hooks (`postJobHooks.js`) that auto-commit+push and archive to Drive after job completion. An agent modifying channel routing or adding a new post-job hook wouldn't know these systems exist.
 **Suggestion:** Added channel watcher list and post-job hooks section to CLAUDE.md. (Done in this run.)
 
@@ -201,14 +201,14 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 
 ## 2026-04-06 — Run #14
 
-### S33: centralDiscord CLAUDE.md missing quality gap fix subsystems
-**File:** `centralDiscord/CLAUDE.md`
-**Issue:** The Discord quality gap fix (commit c86983c) added URL pre-fetching, bot output stripping, and route classifier heuristics to centralDiscord, but CLAUDE.md wasn't updated. context.md was updated but CLAUDE.md is what agents read first.
+### S33: discord-bot CLAUDE.md missing quality gap fix subsystems
+**File:** `discord-bot/CLAUDE.md`
+**Issue:** The Discord quality gap fix (commit c86983c) added URL pre-fetching, bot output stripping, and route classifier heuristics to discord-bot, but CLAUDE.md wasn't updated. context.md was updated but CLAUDE.md is what agents read first.
 **Suggestion:** Added URL Pre-Fetching & Retry Detection section to CLAUDE.md. (Done in this run.)
 
 ### S34: run.sh memory scan single-path — 5th time flagged (S8/S27 repeat)
 **File:** `autonomousDev/learnings-pass/run.sh` (line ~225)
-**Issue:** `MEMORY_DIR` is hardcoded to `$HOME/.claude/projects/-mnt-c-Users-npeza/memory`. Learning agent misses memories from Linux-home sessions (`-home-npezarro`, `-home-npezarro-repos`, `-home-npezarro-repos-centralDiscord`). This run found 2 memory-only items in those paths that had been invisible to prior scans.
+**Issue:** `MEMORY_DIR` is hardcoded to `$HOME/.claude/projects/-mnt-c-Users-npeza/memory`. Learning agent misses memories from Linux-home sessions (`-home-npezarro`, `-home-npezarro-repos`, `-home-npezarro-repos-discord-bot`). This run found 2 memory-only items in those paths that had been invisible to prior scans.
 **Suggestion:** Replace hardcoded path with: `find $HOME/.claude/projects/*/memory -name "*.md" 2>/dev/null`. This is the most-repeated unfixed suggestion — consider prioritizing it.
 
 ### S35: feedback_wordpress_posting.md migrated to wordpress-auto-posting.md
@@ -222,7 +222,7 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 ### S36: run.sh memory scan single-path — 6th time flagged (S8/S27/S34 repeat)
 **File:** `autonomousDev/learnings-pass/run.sh` (line 227)
 **Issue:** `MEMORY_DIR` is hardcoded to `$HOME/.claude/projects/-mnt-c-Users-npeza/memory`. This means the learning agent only scans memory files from Windows-path sessions. Memories saved from `/home/npezarro` sessions (3 project paths with memory files exist) are invisible. This has been flagged in S8 (run #3), S27 (run #11), and S34 (run #14). Still unfixed after 12 runs.
-**Suggestion:** Replace line 227 with a multi-path scan: `find $HOME/.claude/projects/*/memory -name "*.md" ! -name "MEMORY.md" 2>/dev/null`. Currently missing memories from: `-home-npezarro-repos/memory/` (2 files), `-home-npezarro-repos-centralDiscord/memory/` (2 files).
+**Suggestion:** Replace line 227 with a multi-path scan: `find $HOME/.claude/projects/*/memory -name "*.md" ! -name "MEMORY.md" 2>/dev/null`. Currently missing memories from: `-home-npezarro-repos/memory/` (2 files), `-home-npezarro-repos-discord-bot/memory/` (2 files).
 **Priority:** HIGH — this is the most-repeated unfixed suggestion and directly causes the learning agent to miss memory-only learnings.
 
 ### S37: autonomousDev has 15 stale unmerged remote branches

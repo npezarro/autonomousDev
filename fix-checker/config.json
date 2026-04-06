@@ -10,10 +10,10 @@
     "valueSortify",
     "scripts",
     "waymo-sim",
-    "llm-context",
+    "context-mgmt",
     "runCoach",
     "reddit-bottom-sheet-blocker",
-    "trustedCircle"
+    "social-tools"
   ],
   "protected_repos": ["REDACTED_DISCORD_BOT_REPO", "agentGuidance", "autonomousDev"],
   "work_log_channel_id": "REDACTED_WORK_LOG_CHANNEL_ID",

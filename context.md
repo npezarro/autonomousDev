@@ -27,12 +27,12 @@
 Full session closeout: `privateContext/deliverables/closeouts/2026-04-05-learning-system-followup.md`
 
 ## Environment Notes
-- **Deploy target:** GCP VM (pezant.ca)
+- **Deploy target:** GCP VM (see privateContext for details)
 - **Process manager:** Cron (not PM2)
-- **SSH user:** generatedByTermius (not npezarro)
+- **SSH user:** see privateContext
 - **Node version:** N/A (bash + Claude CLI)
 - **Python:** 3.9 on VM (no 3.10+ features like match/case)
-- **Key paths on VM:** ~/repos/autonomousDev/, ~/repos/privateContext/, ~/repos/agentGuidance/
+- **Key paths on VM:** ~/repos/ (same repo structure as local)
 
 ## Active Branch
 main

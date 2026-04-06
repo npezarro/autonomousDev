@@ -6,8 +6,8 @@
     "GeminiCompletionChime",
     "activity-tracker",
     "aisleOffersFilterClaimandTracking",
-    "assortedLLMTasks",
-    "assortedLLMTasks-cleanup",
+    "llm-tasks",
+    "llm-tasks-cleanup",
     "auto-shorts-worker",
     "botlink",
     "claude-auto-merger",
@@ -17,7 +17,7 @@
     "groceryGenius",
     "humblechoice-oneclickclaim",
 
-    "llm-context",
+    "context-mgmt",
     "markdownMakerBookmarklet",
     "page-reader",
 
@@ -29,8 +29,8 @@
     "runEvaluator",
     "runeval",
     "scripts",
-    "shorts-pipeline",
-    "trustedCircle",
+    "shorts-automation",
+    "social-tools",
     "valueSortify",
     "waymo-sim",
     "youtubeSpeedSetAndRemember"
