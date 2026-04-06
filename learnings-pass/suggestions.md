@@ -109,3 +109,17 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **File:** `browser-agent/CLAUDE.md`
 **Issue:** v1.5.0 added `ensure`, `close`, and `openTab` commands for multi-tab workflows, but CLAUDE.md only documented single-tab architecture. Agents using browser-cli for multi-step flows (e.g., claim on one site, redeem on another) wouldn't know about idempotent tab management.
 **Suggestion:** Added multi-tab orchestration section to CLAUDE.md. (Done in this run.)
+
+---
+
+## 2026-04-06 — Run #8
+
+### S19: job-scraper has no CLAUDE.md despite 9 ATS adapters and complex company config
+**File:** `job-scraper/CLAUDE.md` (does not exist)
+**Issue:** The job-scraper has 9 ATS adapters (Greenhouse, Ashby, Lever, Workday, Workable, Netflix, page-reader, browser, generic) plus company-specific quirks like Ashby posting-api fallback for non-GraphQL companies, URL-encoded slugs (e.g., "Jasper AI"), and platform misattributions (e.g., Stripe was labeled "generic" but is actually Greenhouse). Recent commit `4708e6d` added Workable adapter and fixed 6 company ATS misconfigurations. Without CLAUDE.md, agents will repeat discovery of these quirks.
+**Suggestion:** Create a CLAUDE.md documenting: adapter selection logic, company.json ATS field semantics, common ATS misconfigurations, and the page-reader fallback strategy for companies without structured APIs.
+
+### S20: learning-agent.md stale architecture values still unfixed (S13 repeat)
+**File:** `agentGuidance/guidance/learning-agent.md`
+**Issue:** S13 (run #5) flagged three stale values: wrong location (`learning-agent/` vs `learnings-pass/`), wrong timeout (20 min vs 30 min), wrong frequency ("every 2-4 hours" vs hourly at :43). These remain unfixed after 3 runs. The design doc misleads any agent trying to understand or modify the learning agent setup.
+**Suggestion:** Fix the three values in the Architecture section. This is a simple factual correction, not a design change.
