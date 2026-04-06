@@ -153,3 +153,17 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **File:** `centralDiscord/CLAUDE.md`
 **Issue:** The CLAUDE.md documented architecture (entry point, deploy queue, session pool) and bot-specific rules, but omitted two active subsystems: (1) channel watchers that auto-route messages to specific agent cwds (#buying-guides → buying-assistant), and (2) post-job hooks (`postJobHooks.js`) that auto-commit+push and archive to Drive after job completion. An agent modifying channel routing or adding a new post-job hook wouldn't know these systems exist.
 **Suggestion:** Added channel watcher list and post-job hooks section to CLAUDE.md. (Done in this run.)
+
+---
+
+## 2026-04-06 — Run #12
+
+### S29: claude-auto-merger CLAUDE.md missing race condition gotcha (migrated from memory)
+**File:** `claude-auto-merger/CLAUDE.md`
+**Issue:** The `project_auto_merger_race` memory documented a known race condition where auto-merger deletes a branch before the agent can call `gh pr create`. This was memory-only — agents working on repos using auto-merger wouldn't know about the expected failure mode or the workaround.
+**Suggestion:** Added "Known Gotcha: Race Condition with Agent PR Creation" section to CLAUDE.md. (Done in this run.)
+
+### S30: claude-bakeoff still missing CLAUDE.md (S24 repeat)
+**File:** `claude-bakeoff/CLAUDE.md` (does not exist)
+**Issue:** S24 flagged this in run #10 and it remains unresolved. claude-bakeoff has 15+ environments, task.yaml conventions, and output storage rules (private repos only) that agents need.
+**Suggestion:** Create CLAUDE.md with environment structure, task.yaml schema, arena CLI commands, and the 4-path bakeoff pattern. This is the last "active repo without CLAUDE.md" gap.
