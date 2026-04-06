@@ -244,3 +244,18 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** `MEMORY_DIR` is hardcoded to `$HOME/.claude/projects/-mnt-c-Users-npeza/memory`. This run confirmed zero memory files found across ALL project paths (the prior paths with files may have been cleaned up), but the fundamental issue persists: when new memories are saved from `/home/npezarro` sessions, the learning agent won't see them. Flagged 7 times across 13 runs.
 **Suggestion:** Replace with `find $HOME/.claude/projects/*/memory -name "*.md" ! -name "MEMORY.md" 2>/dev/null`. This is now the single longest-standing unfixed item.
 **Priority:** HIGH — escalating from suggestion to blocking issue. Consider fixing directly in the next interactive session rather than waiting for passive migration.
+
+---
+
+## 2026-04-06 — Run #17
+
+### S40: centralDiscord CLAUDE.md missing interactive sessions and pre-job repo sync
+**File:** `centralDiscord/CLAUDE.md`
+**Issue:** Two major features landed since run #16: (1) Interactive Discord sessions with [WAITING_FOR_INPUT] protocol (commit b7e695f) — agents can pause mid-task, ask user a question via Discord, and resume on reply with 30-min timeout. (2) Pre-job repo sync (commit d62f04c) — executor.js now pulls latest agentGuidance and job cwd before every spawn, preventing stale CLAUDE.md on VM agents. Neither was in CLAUDE.md.
+**Suggestion:** Added "Interactive Sessions ([WAITING_FOR_INPUT])" and "Pre-Job Repo Sync" sections to CLAUDE.md. (Done in this run.)
+
+### S41: run.sh memory scan single-path — 8th time flagged (CRITICAL)
+**File:** `autonomousDev/learnings-pass/run.sh` (line 227)
+**Issue:** `MEMORY_DIR` hardcoded to single Windows-path project. This run found 37 memory files across 3 project paths (`-home-npezarro-repos/`, `-home-npezarro-repos-centralDiscord/`, `-mnt-c-Users-npeza/`) — only the last is scanned. 4 files in the first two paths are invisible to the learning agent, including `project_session_pool` (centralDiscord session pool architecture). **Flagged 8 times across 14 runs (S8→S27→S34→S36→S39→S41).** The `autonomousDev-private` repo was recently created with a fresh `learnings-pass/` — this is the ideal time to fix the memory scan path in the new private runner.
+**Suggestion:** In both `autonomousDev/learnings-pass/run.sh` and `autonomousDev-private/learnings-pass/run.sh`, replace the hardcoded `MEMORY_DIR` with: `find $HOME/.claude/projects/*/memory -name "*.md" ! -name "MEMORY.md" 2>/dev/null`
+**Priority:** CRITICAL — longest-standing unfixed item, actively causing missed learnings.
