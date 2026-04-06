@@ -123,3 +123,19 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **File:** `agentGuidance/guidance/learning-agent.md`
 **Issue:** S13 (run #5) flagged three stale values: wrong location (`learning-agent/` vs `learnings-pass/`), wrong timeout (20 min vs 30 min), wrong frequency ("every 2-4 hours" vs hourly at :43). These remain unfixed after 3 runs. The design doc misleads any agent trying to understand or modify the learning agent setup.
 **Suggestion:** Fix the three values in the Architecture section. This is a simple factual correction, not a design change.
+
+---
+
+## 2026-04-06 — Run #9
+
+### S21: learning-agent.md stale values fixed (S13/S20 resolved)
+**File:** `agentGuidance/guidance/learning-agent.md`
+**Status:** Fixed in this run. Location corrected to `learnings-pass/`, frequency to "hourly at :43", timeout to "30 minutes".
+
+### S22: job-scraper CLAUDE.md created (S19 resolved)
+**File:** `job-scraper/CLAUDE.md`
+**Status:** Created in this run. Documents 9 ATS adapters, common gotchas (ATS misattribution, Ashby fallback, URL-encoded slugs), key commands, and data flow.
+
+### S23: claude-auto-merger CLAUDE.md created (S17 resolved)
+**File:** `claude-auto-merger/CLAUDE.md`
+**Status:** Created in this run. Documents auto-merge criteria, learnings PR exception, crash-fix rate limiting, environment variables, and key lib.js functions.
