@@ -171,3 +171,28 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 ### S28: feedback_bridge_vm_local migrated to deployment.md
 **File:** `agentGuidance/guidance/deployment.md`
 **Status:** Migrated in this run. Added "Check the Server Before Asking" section — SSH into VM for env vars, configs, logs before asking the user. Previously memory-only.
+
+---
+
+## 2026-04-06 — Run #12
+
+### S29: claude-auto-merger CLAUDE.md missing race condition gotcha (migrated from memory)
+**File:** `claude-auto-merger/CLAUDE.md`
+**Status:** Added "Known Gotcha: Race Condition with Agent PR Creation" section. Migrated from `project_auto_merger_race` memory. (Done in run #12.)
+
+### S30: claude-bakeoff still missing CLAUDE.md (S24 repeat)
+**File:** `claude-bakeoff/CLAUDE.md`
+**Status:** Created in run #13 with architecture, operational rules, workflow commands, and patterns learned. Resolves S24. (Done.)
+
+---
+
+## 2026-04-06 — Run #13
+
+### S31: claude-bakeoff CLAUDE.md created (S24/S30 resolved)
+**File:** `claude-bakeoff/CLAUDE.md`
+**Status:** Created in this run. Documents architecture (arena CLI, environments, tasks, runs), 5 operational rules (output to private repos, baseline stays minimal, eval criteria specificity), and patterns learned from bakeoff testing.
+
+### S32: auto-dev learnings-12 branch stuck behind main
+**File:** `auto-dev` repo
+**Issue:** Branch `claude/learnings-12` contains S29-S30 but was based on pre-run-#11 main. After run #11 merged, the branch diverged and the auto-merger couldn't merge it (no PR was created or it failed). S29-S30 content was stranded. Run #13 incorporated the content and the branch can be cleaned up.
+**Suggestion:** Add a pre-flight check to the learnings-pass runner: before creating a new branch, check for stale unmerged branches (`git branch -r --no-merged origin/main | grep learnings`) and either rebase them or warn.
