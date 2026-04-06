@@ -10,7 +10,7 @@
     "valueSortify",
     "scripts",
     "waymo-sim",
-    "llm-context",
+    "context-mgmt",
     "runCoach",
     "reddit-bottom-sheet-blocker",
     "social-tools"
