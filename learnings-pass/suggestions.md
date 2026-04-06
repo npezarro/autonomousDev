@@ -214,3 +214,18 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 ### S35: feedback_wordpress_posting.md migrated to wordpress-auto-posting.md
 **File:** `agentGuidance/guidance/wordpress-auto-posting.md`
 **Status:** Added "Manual / Agent-Initiated Posts" section documenting WP-CLI and local REST API approaches for non-hook posting. (Done in this run.)
+
+---
+
+## 2026-04-06 — Run #15
+
+### S36: run.sh memory scan single-path — 6th time flagged (S8/S27/S34 repeat)
+**File:** `auto-dev/learnings-pass/run.sh` (line 227)
+**Issue:** `MEMORY_DIR` is hardcoded to `$HOME/.claude/projects/-mnt-c-Users-user/memory`. This means the learning agent only scans memory files from Windows-path sessions. Memories saved from `/home/user` sessions (3 project paths with memory files exist) are invisible. This has been flagged in S8 (run #3), S27 (run #11), and S34 (run #14). Still unfixed after 12 runs.
+**Suggestion:** Replace line 227 with a multi-path scan: `find $HOME/.claude/projects/*/memory -name "*.md" ! -name "MEMORY.md" 2>/dev/null`. Currently missing memories from: `-home-user-repos/memory/` (2 files), `-home-user-repos-discord-bot/memory/` (2 files).
+**Priority:** HIGH — this is the most-repeated unfixed suggestion and directly causes the learning agent to miss memory-only learnings.
+
+### S37: auto-dev has 15 stale unmerged remote branches
+**File:** `auto-dev` repo
+**Issue:** `git branch -r --no-merged origin/main` returns 15 branches (learnings-2 through learnings-14-ad, plus learnings-approval). These are all from prior learning agent runs whose content was merged via subsequent runs but whose branches were never cleaned up. This clutters the remote and makes branch listing noisy.
+**Suggestion:** Add a cleanup step to the learnings-pass runner: after a successful PR merge, delete the remote branch. Or add a periodic cleanup: `git push origin --delete $(git branch -r --no-merged origin/main | grep 'claude/learnings-' | sed 's|origin/||')`. The git-workflow.md guidance (line 70) already says to clean up stale branches.
