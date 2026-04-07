@@ -8,7 +8,7 @@ This repo needs focused attention. The free game discovery and auto-claim system
 The direct Playwright login hits Epic's puzzle CAPTCHA every time. This is handled by the separate `epic-claimer` PM2 process (claabs/epicgames-freegames-node) which uses device code auth. The Playwright `src/claim/epic.js` module will always fail — consider skipping the Playwright Epic claim attempt entirely since `epic-claimer` handles it.
 
 ### 2. Epic Checkout CAPTCHA (NEEDS FIX)
-The `epic-checkout` server (port 3100) receives checkout URLs from `epic-claimer` and tries to complete them via Playwright, but Epic's checkout also requires login which hits CAPTCHA. The checkout server needs to use the device auth token from `epic-claimer` instead of Playwright login. Look at Epic's purchase API — the checkout may be completable via API call with the bearer token from `config/device-auths.json` on the VM at `~/repos/epic-free-claimer/config/device-auths.json`.
+The `epic-checkout` server (port 3100) receives checkout URLs from `epic-claimer` and tries to complete them via Playwright, but Epic's checkout also requires login which hits CAPTCHA. The checkout server needs to use the device auth token from `epic-claimer` instead of Playwright login. Look at Epic's purchase API — the checkout may be completable via API call with the bearer token from the Epic claimer's device auth config on the VM.
 
 ### 3. GOG 2FA email code not found (NEEDS FIX)
 GOG sends a 4-digit security code to REDACTED_EMAIL. The `pollEmailCode("noreply@gog.com", /\b(\d{4})\b/, 60)` call isn't finding the code. Possible issues:
@@ -42,14 +42,14 @@ No active free games on these platforms in the GamerPower results currently.
 
 ## VM PM2 Processes
 - `free-games` (id 12) — Daily at 10:03am PT, cron in ecosystem.config.js
-- `epic-claimer` (id 14) — claabs tool, every 6h, at ~/repos/epic-free-claimer/
+- `epic-claimer` (id 14) — claabs tool, every 6h
 - `epic-checkout` (id 16) — Webhook server on port 3100
 
 ## Credentials
-All in `.env` on VM at `~/repos/freeGames/.env`. Includes:
-- Epic, Steam, Amazon (with TOTP), GOG, Itch.io, Humble Bundle
-- Gmail IMAP + SMTP for email code polling and game code emails
-- Discord webhooks for #free-games and #free-game-claims
+All platform credentials are stored in the `.env` file in the freeGames repo on the VM. Includes:
+- Platform login credentials (Epic, Steam, Amazon, GOG, Itch.io, Humble Bundle)
+- Email integration for 2FA code polling and game code forwarding
+- Discord webhooks for claim notifications
 
 ## Suggested Approach
 1. Fix GOG 2FA — debug the email sender/pattern, test IMAP query
