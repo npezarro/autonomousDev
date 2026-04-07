@@ -340,3 +340,17 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** S37 (run #15) flagged 15 stale branches in autonomousDev. Now there are stale `claude/learnings-*` branches across 11 repos (autonomousDev: 5, Discord bot: 5, youtubeSpeedSetAndRemember: 4, claude-auto-merger: 3, auto-shorts-worker: 2, freeGames: 2, agentGuidance: 2, LLM tasks: 1, job-scraper: 1, nll-hunter: 1, upload pipeline: 1). These are from prior runs whose content was merged via subsequent PRs but whose branches were never cleaned up.
 **Suggestion:** Add a periodic cleanup step to the learnings-pass runner or a standalone cleanup script. The auto-merger already handles PR creation and merge — it should also delete the source branch after merge. Alternatively, add `--delete-branch-after-merge` to the auto-merger config.
 **Priority:** MEDIUM — cosmetic but growing. No functional impact yet but branch listings are increasingly noisy.
+
+---
+
+## 2026-04-07 — Run #23
+
+### S54: feedback_pipefail_grep migrated to operational-safety.md
+**File:** `agentGuidance/guidance/operational-safety.md`
+**Status:** Added "Bash `pipefail` + `grep -c` Silent Failure" section. Migrated from memory-only `feedback_pipefail_grep`. The pattern caused 13 days of silent security scanner failure and is relevant to any agent writing bash scripts with `set -eo pipefail`. (Done in this run.)
+
+### S55: autonomousDev repo still missing CLAUDE.md
+**File:** `autonomousDev/CLAUDE.md` (does not exist)
+**Issue:** autonomousDev hosts the learning agent, fix-checker, and autonomous dev runner — all core automation infrastructure. Yet it has no CLAUDE.md. Agents working in this repo (e.g., to modify the learning agent runner, fix-checker prompts, or add a new autonomous task) lack context on directory structure, how runs are triggered, and the relationship between public autonomousDev and the private runner.
+**Suggestion:** Create a CLAUDE.md documenting: directory structure (learnings-pass/, fix-checker/), run triggers (cron at :43 for learnings, hourly fix-checker), public vs private runner split, and the suggestions.md append-only convention.
+**Priority:** LOW — the learning agent prompt itself has detailed instructions, but a CLAUDE.md would help agents doing ad-hoc work in the repo.
