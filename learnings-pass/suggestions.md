@@ -259,3 +259,23 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** `MEMORY_DIR` hardcoded to single Windows-path project. This run found 37 memory files across 3 project paths (`-home-user-repos/`, `-home-user-repos-discord-bot/`, `-mnt-c-Users-user/`) — only the last is scanned. 4 files in the first two paths are invisible to the learning agent, including `project_session_pool` (discord-bot session pool architecture). **Flagged 8 times across 14 runs (S8→S27→S34→S36→S39→S41).** The `auto-dev-private` repo was recently created with a fresh `learnings-pass/` — this is the ideal time to fix the memory scan path in the new private runner.
 **Suggestion:** In both `auto-dev/learnings-pass/run.sh` and `auto-dev-private/learnings-pass/run.sh`, replace the hardcoded `MEMORY_DIR` with: `find $HOME/.claude/projects/*/memory -name "*.md" ! -name "MEMORY.md" 2>/dev/null`
 **Priority:** CRITICAL — longest-standing unfixed item, actively causing missed learnings.
+**Status:** RESOLVED in autonomousDev-private commit 0d9f7f1 (2026-04-06). The private runner now uses `find` across all project paths. The public autonomousDev runner should also be updated if it's still in use.
+
+---
+
+## 2026-04-07 — Run #18
+
+### S42: secrets-hygiene.md missing automated pre-commit hook pattern
+**File:** `agentGuidance/guidance/secrets-hygiene.md`
+**Issue:** agentGuidance added a portable pre-commit hook (commit 6f42fed) that scans staged diffs for sensitive identifiers via `security-scan.sh`. The Pre-Commit Checklist section in secrets-hygiene.md only documented manual grep checks. Any public repo could adopt this hook but the pattern wasn't documented as cross-project guidance.
+**Suggestion:** Added "Automated Pre-Commit Hook" section above the manual checklist, referencing agentGuidance's implementation as the template. (Done in this run.)
+
+### S43: discord-bot CLAUDE.md WAITING_FOR_INPUT format clarification
+**File:** discord-bot CLAUDE.md
+**Issue:** The WAITING_FOR_INPUT regex was fixed (commit 0706525) to capture multiline questions — the question text goes on lines AFTER the marker, not the same line. The CLAUDE.md description was ambiguous about this format.
+**Suggestion:** Clarified in CLAUDE.md that the question is extracted from lines after the marker as multiline text. (Done in this run.)
+
+### S44: autonomousDev learnings-pass file deletion risk during bulk edits
+**File:** `autonomousDev` repo
+**Issue:** Commit ef9e7f2 (security redaction of freeGames-priority.md) accidentally deleted learnings-pass/prompt.md, run.sh, and suggestions.md (833 lines removed). Commit ad438af restored them. This happened because the redaction commit was made from a state where the working tree had the files removed or the commit was not scoped properly.
+**Suggestion:** When doing bulk security redaction or `git filter-repo` operations, always scope commits to specific files (`git add <file>` not `git add .`) to avoid accidentally including unrelated deletions. This pattern is already implied by git-workflow.md but the risk is elevated during security cleanup work.
