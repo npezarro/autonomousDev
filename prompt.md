@@ -32,18 +32,21 @@ Pick the single most impactful thing you can accomplish in one session. Consider
 - Broken deployments or config drift
 
 **Medium Priority:**
+- UX improvements that make apps more useful, polished, or delightful
+- New user-facing features (small enough to ship in one session)
+- Performance improvements users can feel: load times, responsiveness, bundle size
+- Design system alignment (bringing repos into the shared design system)
 - Code quality: dead code, unused imports, inconsistent patterns
-- Missing or broken tests — add coverage where it matters
 - Dependency updates (especially major versions with security fixes)
-- Performance: bundle size, unnecessary re-renders, N+1 queries
-- Accessibility improvements
-- Documentation gaps that would confuse a new contributor
 
 **Low Priority (but still valuable):**
+- Missing or broken tests — add coverage where it matters
+- Accessibility improvements
 - Refactoring for clarity — rename confusing variables, extract helpers
 - Add TypeScript types or JSDoc where the code is complex
 - Consolidate duplicate logic across files
 - Improve error messages and logging
+- Documentation gaps that would confuse a new contributor
 - Clean up git: stale branches, diverged configs
 
 **Creative improvements are encouraged.** If you see an opportunity to add a useful feature, improve UX, or restructure something for long-term maintainability — go for it. You don't need permission for improvements. The only constraint is: **deploy to staging only, never to production.**
@@ -52,18 +55,23 @@ Pick the single most impactful thing you can accomplish in one session. Consider
 
 **This is a feature run: {{FEATURE_RUN}}**
 
-Every 5th run is a "feature run" where creative forward development is the TOP priority (above medium/low items). On feature runs, focus on measurable improvements:
+Every 2nd run is a "feature run" where creative forward development is the TOP priority (above medium/low items). On feature runs, focus on **user-facing improvements** — things a user would notice:
 
-**Valid feature work:**
-- Test coverage for untested critical paths
-- Accessibility improvements (detectable via automated checks)
-- Error message clarity on high-error endpoints
-- Performance improvements with before/after measurements
-- Input validation on unprotected routes
-- UX improvements that make the app more useful or polished
+**Top-tier feature work (prefer these):**
+- UX improvements: better flows, clearer feedback, smoother interactions
+- New user-facing features that can ship in one session
+- Visual polish: layout, spacing, typography, responsive behavior
+- Performance improvements users can feel (load time, responsiveness)
 - Design system alignment (bringing repos into the shared design system)
 
+**Acceptable feature work (if nothing top-tier is available):**
+- Error message clarity on high-error endpoints
+- Input validation on unprotected routes
+- Performance improvements with before/after measurements
+
 **Not valid on feature runs (skip these):**
+- Test coverage (save for maintenance runs)
+- Accessibility-only changes (save for maintenance runs)
 - Adding new dependencies
 - New API endpoints or routes
 - Auth, CORS, or permission model changes
@@ -72,6 +80,18 @@ Every 5th run is a "feature run" where creative forward development is the TOP p
 **Feature ideas:** At the end of a feature run, write a `FEATURE_IDEAS:` block to `{{SCRIPT_DIR}}/context/<repo-name>-features.md` with 2-3 ideas you noticed for the next feature run. Keep it concise — just a repo name, idea title, and one-line rationale.
 
 On non-feature runs, ignore this section entirely and follow the standard priority order.
+
+## Proposal Mode
+
+**This is a proposal-only run: {{PROPOSAL_MODE}}**
+
+When proposal mode is active, do NOT execute changes. Instead:
+1. Scan repos as usual and identify the most impactful improvement
+2. Write a detailed proposal (what you'd change, which files, why, expected outcome)
+3. Output the proposal as a `PROPOSAL:` block in the summary (see Output Format below)
+4. Do NOT create branches, PRs, or modify any files
+
+This mode activates when usage budget is constrained. Proposals are posted to Discord for human sign-off.
 
 ## Browser Testing
 
@@ -152,6 +172,17 @@ If there are already-merged changes on main that should be deployed to productio
 ```
 PRODUCTION_PROPOSAL:
 - <repo>: <what changed and why it's ready for production>
+```
+
+In proposal mode, output a proposal block instead of PR/summary blocks:
+
+```
+PROPOSAL:
+- Repo: <repo name>
+- Change: <what you'd do>
+- Files: <which files you'd touch>
+- Rationale: <why this is the most impactful thing>
+- Estimate: <rough scope — small/medium/large>
 ```
 
 Do NOT include raw SSH deploy commands. Do NOT merge PRs. The owner reviews and merges via Discord reaction, then the bot handles production deploys.
