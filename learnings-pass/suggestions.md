@@ -409,3 +409,23 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Second time flagged. autonomousDev hosts core automation (learnings-pass, fix-checker, autonomous dev runner) but has no CLAUDE.md. Any agent modifying the learning agent, runner, or fix-checker prompts lacks context on directory structure, cron triggers, and the public/private runner split.
 **Suggestion:** Create CLAUDE.md with: directory layout, run triggers (cron at :43 for learnings, autonomousDev runner via Discord), relationship to autonomousDev-private, and suggestions.md conventions.
 **Priority:** LOW — agents working here use the detailed prompt.md instructions, but a CLAUDE.md would help ad-hoc work.
+
+---
+
+## 2026-04-07 — Learning Agent Run #24b
+
+### S64: claude-auto-merger CLAUDE.md phantom write — resolved
+**File:** `claude-auto-merger/CLAUDE.md`
+**Issue:** S17/S19 (run #9) and S29 (run #12) both claimed to create/update claude-auto-merger CLAUDE.md, and completed-work.md marked them as done. But the CLAUDE.md didn't exist on main — it was on unmerged branches. The server-helpers PR (run #29 autonomousDev) finally merged a CLAUDE.md to main, but it lacked the race condition gotcha from S29.
+**Resolution:** Added race condition documentation and server-helpers.js architecture to the now-existing CLAUDE.md (PR #15, auto-merged). This resolves S17, S19, and S29 properly.
+**Lesson:** When completed-work.md says "created CLAUDE.md" but it was on a learnings branch, verify the branch was actually merged before marking as fully resolved. Learnings branches require Discord approval — they don't auto-merge.
+
+### S65: claude-token-tracker missing CLAUDE.md
+**File:** `claude-token-tracker/CLAUDE.md` (does not exist)
+**Issue:** claude-token-tracker has had 10 PRs (mostly Vite security fixes) but no CLAUDE.md. It's a React + Vite app for tracking Claude usage. Without CLAUDE.md, agents working there lack context on the app's purpose, build process, and deployment.
+**Suggestion:** Create CLAUDE.md with app purpose, tech stack (React + Vite + TypeScript), and deployment details.
+**Priority:** LOW — this repo gets infrequent automated maintenance (security patches), not feature work.
+
+### S66: Duplicate PR race condition in auto-merger now documented
+**File:** `claude-auto-merger/CLAUDE.md`
+**Status:** Done. Documented the TOCTOU race in push webhook handler that creates 2-3 duplicate PRs when multiple webhooks arrive within milliseconds. Impact is cosmetic (all merge fine) but clutters PR history. Root cause: no mutex between pulls.list check and pulls.create call in server.js ~lines 396-407.
