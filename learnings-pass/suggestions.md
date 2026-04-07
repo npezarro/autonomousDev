@@ -429,3 +429,23 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 ### S66: Duplicate PR race condition in auto-merger now documented
 **File:** `claude-auto-merger/CLAUDE.md`
 **Status:** Done. Documented the TOCTOU race in push webhook handler that creates 2-3 duplicate PRs when multiple webhooks arrive within milliseconds. Impact is cosmetic (all merge fine) but clutters PR history. Root cause: no mutex between pulls.list check and pulls.create call in server.js ~lines 396-407.
+
+---
+
+## 2026-04-07 — Learning Agent Run #25
+
+### S67: tampermonkey.md now documents debug flags pattern
+**File:** `agentGuidance/guidance/tampermonkey.md`
+**Status:** Added "Debug & Verbose Logging" section. Two independent TM userscripts (ChatGPTCompletionChime, GeminiCompletionChime) both shipped with debug flags enabled in production on the same day — console spam every 750ms for all users. Pattern: always ship with `const DEBUG = false` and gate console output. (Done in this run.)
+
+### S68: PAT scope still blocking 24+ repos (S61 — 3rd escalation, CRITICAL)
+**File:** GitHub PAT configuration (infrastructure)
+**Issue:** S60 (HIGH) → S61 (CRITICAL) → still unfixed. 158+ unmerged `claude/auto-*` branches across 24 repos. Every autonomousDev run that targets an out-of-scope repo creates another stranded branch. This is the single largest infrastructure gap — work is being done but can't be merged.
+**Suggestion:** Either switch to a classic PAT with full repo scope, or add all actively-developed repos to the fine-grained PAT's allowed list. This continues to be the #1 priority infrastructure fix.
+**Priority:** CRITICAL — 4th time flagged.
+
+### S69: Stale branch accumulation continues (S62 — 6th flag, HIGH)
+**File:** Multiple repos (24+ affected)
+**Issue:** 158+ stale `claude/auto-*` and `claude/learnings-*` branches across 24 repos. The auto-merger creates PRs and merges but never deletes source branches. Combined with PAT-scope-blocked branches. First flagged S37 (run #15), now flagged 6 times.
+**Suggestion:** Add post-merge branch deletion to auto-merger and a periodic cleanup script for orphaned branches.
+**Priority:** HIGH — cosmetic but growing rapidly.
