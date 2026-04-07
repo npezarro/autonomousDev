@@ -354,3 +354,18 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** autonomousDev hosts the learning agent, fix-checker, and autonomous dev runner — all core automation infrastructure. Yet it has no CLAUDE.md. Agents working in this repo (e.g., to modify the learning agent runner, fix-checker prompts, or add a new autonomous task) lack context on directory structure, how runs are triggered, and the relationship between public autonomousDev and the private runner.
 **Suggestion:** Create a CLAUDE.md documenting: directory structure (learnings-pass/, fix-checker/), run triggers (cron at :43 for learnings, hourly fix-checker), public vs private runner split, and the suggestions.md append-only convention.
 **Priority:** LOW — the learning agent prompt itself has detailed instructions, but a CLAUDE.md would help agents doing ad-hoc work in the repo.
+
+---
+
+## 2026-04-07 — Run #24
+
+### S56: auto-shorts-worker CLAUDE.md missing channel verification guard
+**File:** `auto-shorts-worker/CLAUDE.md`
+**Issue:** Commit 4bc71a9 added a runtime channel verification guard in `_get_youtube_service()` — before uploading, the worker calls the YouTube API to verify the token's actual channel ID matches the target. This prevents silently uploading to the wrong channel when a token gets re-authed to a different brand account. Not documented in CLAUDE.md.
+**Suggestion:** Added "Channel Verification Guard" section under Upload Privacy. (Done in this run.)
+
+### S57: Stale unmerged learnings branches still accumulating (S53 repeat, MEDIUM)
+**File:** Multiple repos
+**Issue:** S37 (run #15) and S53 (run #22) flagged stale `claude/learnings-*` branches across 11+ repos. Still unfixed. The auto-merger creates PRs and merges them but doesn't delete source branches. This is cosmetic but growing — branch listings are increasingly noisy.
+**Suggestion:** Add `--delete-branch-after-merge` behavior to the auto-merger, or add a cleanup step to the learnings-pass runner. 3rd time flagged.
+**Priority:** MEDIUM — no functional impact but increasingly noisy.
