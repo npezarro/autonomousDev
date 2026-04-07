@@ -298,3 +298,17 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **File:** Discord bot `CLAUDE.md`
 **Issue:** Commit 2f4963f added buying-guide link posting to `#file-links` channel via `FILE_LINKS_WEBHOOK_URL` env var. Also switched git commit from `execSync` with string interpolation to `execFileSync` for shell injection safety. Neither documented.
 **Suggestion:** Updated Post-Job Hooks section with #file-links posting and `execFileSync` note. (Done in this run.)
+
+---
+
+## 2026-04-07 — Run #20
+
+### S48: learning-agent.md stale repo name `auto-dev` (S21 incomplete fix)
+**File:** `agentGuidance/guidance/learning-agent.md` (line 16)
+**Issue:** S21 (run #9) fixed the subdirectory name (`learning-agent/` → `learnings-pass/`) but left the repo name as `auto-dev`. The actual directory is `~/repos/autonomousDev/` — `auto-dev` doesn't exist. The path was `~/repos/auto-dev/learnings-pass/`, now corrected to `~/repos/autonomousDev/learnings-pass/`.
+**Suggestion:** Fixed in this run (agentGuidance PR #139, auto-merged).
+
+### S49: comprehensive-closeout.md hardcoded memory path resolved (S26)
+**File:** `agentGuidance/guidance/comprehensive-closeout.md` (line 93)
+**Issue:** Hardcoded `~/.claude/projects/-mnt-c-Users-npeza/memory/` — both user-specific (sensitive identifier) and wrong for sessions started from other working directories. Flagged since run #11 (S26).
+**Suggestion:** Replaced with generic `~/.claude/projects/<project-path>/memory/` template. Fixed in this run (agentGuidance PR #139, auto-merged).
