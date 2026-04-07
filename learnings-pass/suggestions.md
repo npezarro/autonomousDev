@@ -387,3 +387,25 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** autonomousDev run #15 pushed branch `orch-tests-3` but couldn't create a PR because the fine-grained PAT doesn't include freeGames in its allowed repos. Two earlier test suites (checkout-server-email, claim-orchestrator) are also on unmerged branches. These branches contain ~100 new tests that aren't on main.
 **Suggestion:** Add freeGames to the fine-grained PAT's allowed repo list. Then create PRs for the pending branches (or push from a PAT with full repo scope).
 **Priority:** HIGH — 100+ tests are stranded on branches with no PR.
+
+---
+
+## 2026-04-07 — Run #26
+
+### S61: Fine-grained PAT scope now blocking 24 repos (S60 escalation, CRITICAL)
+**File:** GitHub PAT configuration (infrastructure)
+**Issue:** S60 flagged freeGames specifically. The problem has exploded: 158 unmerged `claude/auto-*` branches now exist across **24 repos**. The fine-grained PAT only covers a subset of repos, so the auto-merger can push branches but can't create PRs for most of them. Top offenders: botlink (26), groceryGenius (22), promptlibrary (22), valueSortify (16), freeGames (14). Every autonomousDev run that targets an out-of-scope repo creates another stranded branch.
+**Suggestion:** Either (a) switch to a classic PAT with full repo scope, or (b) add all actively-developed repos to the fine-grained PAT's allowed list. Then bulk-create PRs for the 158 pending branches, or run a cleanup script to merge branches where tests pass and changes are clean.
+**Priority:** CRITICAL — this is the single largest infrastructure gap. Work is being done but can't be merged. Escalating from HIGH (S60) to CRITICAL.
+
+### S62: Stale branch accumulation at 158 branches (S37/S53/S57 — 5th flag)
+**File:** Multiple repos (24 affected)
+**Issue:** The auto-merger creates PRs and merges them but never deletes source branches. Combined with PAT-scope-blocked branches that can't even get PRs, there are now 158 stale `claude/auto-*` and `claude/learnings-*` branches across 24 repos. First flagged in S37 (run #15), then S53 (run #22), S57 (run #24). The auto-merger's `lib.js` `deleteBranch()` function exists but is only called on merge — branches that fail PR creation are never cleaned up.
+**Suggestion:** Two-part fix: (1) Add post-merge branch deletion to auto-merger (call GitHub API to delete source branch after successful merge). (2) Add a periodic cleanup script for orphaned branches where the content is already on main (e.g., via cherry-pick or subsequent PR).
+**Priority:** HIGH — upgraded from MEDIUM. 158 branches is noise that obscures real pending work.
+
+### S63: autonomousDev still missing CLAUDE.md (S55 repeat)
+**File:** `autonomousDev/CLAUDE.md` (does not exist)
+**Issue:** Second time flagged. autonomousDev hosts core automation (learnings-pass, fix-checker, autonomous dev runner) but has no CLAUDE.md. Any agent modifying the learning agent, runner, or fix-checker prompts lacks context on directory structure, cron triggers, and the public/private runner split.
+**Suggestion:** Create CLAUDE.md with: directory layout, run triggers (cron at :43 for learnings, autonomousDev runner via Discord), relationship to autonomousDev-private, and suggestions.md conventions.
+**Priority:** LOW — agents working here use the detailed prompt.md instructions, but a CLAUDE.md would help ad-hoc work.
