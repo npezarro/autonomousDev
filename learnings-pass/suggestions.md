@@ -279,3 +279,22 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **File:** `autonomousDev` repo
 **Issue:** Commit ef9e7f2 (security redaction of freeGames-priority.md) accidentally deleted learnings-pass/prompt.md, run.sh, and suggestions.md (833 lines removed). Commit ad438af restored them. This happened because the redaction commit was made from a state where the working tree had the files removed or the commit was not scoped properly.
 **Suggestion:** When doing bulk security redaction or `git filter-repo` operations, always scope commits to specific files (`git add <file>` not `git add .`) to avoid accidentally including unrelated deletions. This pattern is already implied by git-workflow.md but the risk is elevated during security cleanup work.
+
+---
+
+## 2026-04-07 — Run #19
+
+### S45: Discord bot CLAUDE.md missing CLI mirror streaming sessions
+**File:** Discord bot `CLAUDE.md`
+**Issue:** Major new subsystem `cliMirror.js` (commit 86625d7) added streaming interactive Discord sessions — live message editing, thread-per-session model, 1800-char freeze threshold, edit debouncing. Follow-up fixes added session recovery on bot restart via footer UUID scanning (37ce053), NDJSON output filtering (7d8ae06), and streaming config forwarding (a1863a4). None documented in CLAUDE.md.
+**Suggestion:** Added "CLI Mirror (Streaming Sessions)" section to CLAUDE.md. (Done in this run.)
+
+### S46: auto-shorts-worker CLAUDE.md missing clip boundary, privacy, and Variant B params
+**File:** `auto-shorts-worker/CLAUDE.md`
+**Issue:** Three features landed without CLAUDE.md updates: (1) clip boundary rule — never cut mid-sentence (commit 9b25bc8), (2) privacy field for public uploads threaded through worker → process_job → upload_clip (commit c909c6a), (3) Variant B smart crop params replacing previous values (0.5% ease, 0.5px/frame max, 121-frame smoothing).
+**Suggestion:** Added clip boundary rule, upload privacy docs, and Variant B params to CLAUDE.md. (Done in this run.)
+
+### S47: Discord bot post-job hooks #file-links posting + execFileSync
+**File:** Discord bot `CLAUDE.md`
+**Issue:** Commit 2f4963f added buying-guide link posting to `#file-links` channel via `FILE_LINKS_WEBHOOK_URL` env var. Also switched git commit from `execSync` with string interpolation to `execFileSync` for shell injection safety. Neither documented.
+**Suggestion:** Updated Post-Job Hooks section with #file-links posting and `execFileSync` note. (Done in this run.)
