@@ -325,3 +325,18 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 ### S51: auto-shorts-worker token file filtering gotcha
 **File:** `auto-shorts-worker/pipeline.py`
 **Issue:** Commit 433c613 fixed `discover_all_channels()` to only report expired tokens for real channel IDs (starting with "UC"), filtering out generic filenames like `token.json` or `token_agat.json` that create junk DB entries. This is a narrow one-time fix, not a recurring pattern — not worth adding to CLAUDE.md but noted for completeness.
+
+---
+
+## 2026-04-07 — Run #22
+
+### S52: YouTube shorts upload repo CLAUDE.md missing multi-channel auth pattern
+**File:** Upload repo `CLAUDE.md`
+**Issue:** Commit 6744111 added `auth_en_local.py` with a channel verification pattern (auth + verify channel ID before saving token) and a separate `client_secret_en.json`. CLAUDE.md only mentioned `token_*.json` with no docs on multi-channel auth, per-channel client secrets, or the verification flow. An agent adding a third channel wouldn't know about this pattern.
+**Suggestion:** Added multi-channel auth section to CLAUDE.md. (Done in this run.)
+
+### S53: Stale unmerged learnings branches accumulating across 11 repos (S37 escalation)
+**File:** Multiple repos
+**Issue:** S37 (run #15) flagged 15 stale branches in autonomousDev. Now there are stale `claude/learnings-*` branches across 11 repos (autonomousDev: 5, Discord bot: 5, youtubeSpeedSetAndRemember: 4, claude-auto-merger: 3, auto-shorts-worker: 2, freeGames: 2, agentGuidance: 2, LLM tasks: 1, job-scraper: 1, nll-hunter: 1, upload pipeline: 1). These are from prior runs whose content was merged via subsequent PRs but whose branches were never cleaned up.
+**Suggestion:** Add a periodic cleanup step to the learnings-pass runner or a standalone cleanup script. The auto-merger already handles PR creation and merge — it should also delete the source branch after merge. Alternatively, add `--delete-branch-after-merge` to the auto-merger config.
+**Priority:** MEDIUM — cosmetic but growing. No functional impact yet but branch listings are increasingly noisy.
