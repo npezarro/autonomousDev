@@ -312,3 +312,16 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **File:** `agentGuidance/guidance/comprehensive-closeout.md` (line 93)
 **Issue:** Hardcoded `~/.claude/projects/-mnt-c-Users-npeza/memory/` — both user-specific (sensitive identifier) and wrong for sessions started from other working directories. Flagged since run #11 (S26).
 **Suggestion:** Replaced with generic `~/.claude/projects/<project-path>/memory/` template. Fixed in this run (agentGuidance PR #139, auto-merged).
+
+---
+
+## 2026-04-07 — Run #21
+
+### S50: Discord bot CLAUDE.md missing task templates, prompt logging, and daily roundup
+**File:** Discord bot `CLAUDE.md`
+**Issue:** Three active subsystems were undocumented: taskTemplates.js (`!task` command dispatch with `{{param|default}}` substitution, dynamic add/remove), promptLog.js (verbatim prompt logging to #prompts), and dailyRoundup.js (daily work summary + organic template suggestions). The `project_tasks_framework` memory documented all three but CLAUDE.md only mentioned `!task` in passing under channel watchers.
+**Suggestion:** Added "Task Templates & Prompt Logging" section to CLAUDE.md. (Done in this run, PR #143.)
+
+### S51: auto-shorts-worker token file filtering gotcha
+**File:** `auto-shorts-worker/pipeline.py`
+**Issue:** Commit 433c613 fixed `discover_all_channels()` to only report expired tokens for real channel IDs (starting with "UC"), filtering out generic filenames like `token.json` or `token_agat.json` that create junk DB entries. This is a narrow one-time fix, not a recurring pattern — not worth adding to CLAUDE.md but noted for completeness.
