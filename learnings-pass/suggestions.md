@@ -471,3 +471,25 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** 158+ stale branches. autonomousDev alone has 10 unmerged `claude/learnings-*` remote branches. The auto-merger never deletes source branches after merge, and PAT-blocked branches accumulate indefinitely.
 **Suggestion:** Add post-merge branch deletion to auto-merger. Run periodic cleanup for merged-content branches.
 **Priority:** HIGH — 7th time flagged.
+
+---
+
+## 2026-04-07 — Learning Agent Run #27
+
+### S73: PAT scope still blocking 24+ repos (S71 — 6th escalation, CRITICAL)
+**File:** GitHub PAT configuration (infrastructure)
+**Issue:** S60→S61→S68→S71→still unfixed. Every autonomousDev run targeting an out-of-scope repo creates another stranded branch with no PR. 158+ unmerged branches accumulating across 24 repos. First flagged run #25 (S60), now flagged in 6 consecutive runs. This is the single largest infrastructure gap — completed work cannot be merged.
+**Suggestion:** Switch to a classic PAT with full repo scope, or add all actively-developed repos to the fine-grained PAT. Then bulk-create PRs for pending branches.
+**Priority:** CRITICAL — 6th time flagged. No progress since first report.
+
+### S74: Stale branch accumulation continues (S72 — 8th flag, HIGH)
+**File:** Multiple repos (24+ affected)
+**Issue:** 158+ stale `claude/auto-*` and `claude/learnings-*` branches across 24 repos. autonomousDev alone has 10+ unmerged remote learnings branches. The auto-merger never deletes source branches after merge, and PAT-blocked branches accumulate indefinitely. First flagged S37 (run #15), now flagged 8 times.
+**Suggestion:** Add post-merge branch deletion to auto-merger. Run periodic cleanup for merged-content branches.
+**Priority:** HIGH — 8th time flagged.
+
+### S75: pm-interview-practice still missing CLAUDE.md (S70 repeat)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** S70 flagged this in run #26. Repo has 4 commits, live deployment at /interview/, and a deep closeout posted. Memory file documents architecture but no CLAUDE.md exists. The repo has `context.md` and `progress.md` from closeout but those are session artifacts, not agent instructions.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), and key files.
+**Priority:** LOW — infrequent changes, 2nd time flagged.
