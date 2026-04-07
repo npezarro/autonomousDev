@@ -226,9 +226,18 @@ fi
 # ── Determine run mode (standard vs feature) ──────────────────────────
 
 FEATURE_RUN=false
-if (( RUN_NUMBER % 5 == 0 )); then
+if (( RUN_NUMBER % 2 == 0 )); then
   FEATURE_RUN=true
-  log "FEATURE RUN: Run #$RUN_NUMBER is a feature run (every 5th run)"
+  log "FEATURE RUN: Run #$RUN_NUMBER is a feature run (every 2nd run)"
+fi
+
+# ── Proposal mode: 7d usage > 50% → scan-only, no execution ──────────
+PROPOSAL_MODE=false
+if [ -n "${USAGE_7D:-}" ]; then
+  if python3 -c "exit(0 if ${USAGE_7D} > 50 else 1)" 2>/dev/null; then
+    PROPOSAL_MODE=true
+    log "PROPOSAL MODE: 7d usage at ${USAGE_7D}% (>50%) — scan and propose only, no execution"
+  fi
 fi
 
 # ── Build prompt ─────────────────────────────────────────────────────
@@ -242,6 +251,7 @@ PROMPT="${PROMPT//\{\{SCRIPT_DIR\}\}/$SCRIPT_DIR}"
 PROMPT="${PROMPT//\{\{DATE\}\}/$(date -u +%Y-%m-%d)}"
 PROMPT="${PROMPT//\{\{RUN_NUMBER\}\}/$RUN_NUMBER}"
 PROMPT="${PROMPT//\{\{FEATURE_RUN\}\}/$FEATURE_RUN}"
+PROMPT="${PROMPT//\{\{PROPOSAL_MODE\}\}/$PROPOSAL_MODE}"
 
 # Inject feature ideas context on feature runs
 if [ "$FEATURE_RUN" = true ] && [ -d "$SCRIPT_DIR/context" ]; then
@@ -355,7 +365,8 @@ jq -n \
   --argjson exit_code "$EXIT_CODE" \
   --arg cost "$COST" \
   --argjson feature_run "$( [ "$FEATURE_RUN" = true ] && echo true || echo false )" \
-  '{run: $run, timestamp: $ts, run_type: $run_type, repo: $repo, pr: $pr, files_changed: $files, lines_changed: $lines, exit_code: $exit_code, cost: $cost, feature_run: $feature_run}' \
+  --argjson proposal_mode "$( [ "$PROPOSAL_MODE" = true ] && echo true || echo false )" \
+  '{run: $run, timestamp: $ts, run_type: $run_type, repo: $repo, pr: $pr, files_changed: $files, lines_changed: $lines, exit_code: $exit_code, cost: $cost, feature_run: $feature_run, proposal_mode: $proposal_mode}' \
   >> "$OUTCOME_LOG" 2>/dev/null || true
 
 # ── Post to agent journal ────────────────────────────────────────────
@@ -399,6 +410,16 @@ ${RESULT:0:1800}"
 $PR_REVIEW
 
 React with :white_check_mark: to approve and merge this PR."
+  fi
+
+  # Post scan-only proposals to #autonomous-dev-merges if any
+  SCAN_PROPOSAL=$(echo "$RESULT" | sed -n '/PROPOSAL:/,/^$/p' | head -20)
+  if [ -n "$SCAN_PROPOSAL" ]; then
+    post_to_discord "$AUTONOMOUS_MERGES_WEBHOOK" "**Run #$RUN_NUMBER — Proposal (budget-saving mode)**
+
+$SCAN_PROPOSAL
+
+React with :white_check_mark: to approve execution on next run."
   fi
 
   # Post production proposals to #autonomous-dev-merges if any
