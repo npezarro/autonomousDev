@@ -369,3 +369,21 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** S37 (run #15) and S53 (run #22) flagged stale `claude/learnings-*` branches across 11+ repos. Still unfixed. The auto-merger creates PRs and merges them but doesn't delete source branches. This is cosmetic but growing — branch listings are increasingly noisy.
 **Suggestion:** Add `--delete-branch-after-merge` behavior to the auto-merger, or add a cleanup step to the learnings-pass runner. 3rd time flagged.
 **Priority:** MEDIUM — no functional impact but increasingly noisy.
+
+---
+
+## 2026-04-07 — Run #25
+
+### S58: testing.md now documents typed mock helpers pattern
+**File:** `agentGuidance/guidance/testing.md`
+**Status:** Added typed factory function pattern to Mocking Guidelines. Derived from runeval PR #94 which replaced 34 `as any` casts with typed helpers (fakeOAuthToken, fakeAdapter, etc.). Cross-project pattern — any TypeScript repo with test mocks benefits. (Done in this run.)
+
+### S59: testing.md now documents test fixture schema drift
+**File:** `agentGuidance/guidance/testing.md`
+**Status:** Added "Test Fixture Schema Drift" section. Derived from auto-shorts run #4 where 28 tests failed because inline CREATE TABLE statements were missing columns (burn_captions, smart_crop, privacy) added by migrations. Cross-project pattern — any repo with in-memory DB test fixtures. (Done in this run.)
+
+### S60: freeGames has 3 unmerged test branches blocked by PAT scope
+**File:** freeGames repo
+**Issue:** autonomousDev run #15 pushed branch `orch-tests-3` but couldn't create a PR because the fine-grained PAT doesn't include freeGames in its allowed repos. Two earlier test suites (checkout-server-email, claim-orchestrator) are also on unmerged branches. These branches contain ~100 new tests that aren't on main.
+**Suggestion:** Add freeGames to the fine-grained PAT's allowed repo list. Then create PRs for the pending branches (or push from a PAT with full repo scope).
+**Priority:** HIGH — 100+ tests are stranded on branches with no PR.
