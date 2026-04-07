@@ -449,3 +449,25 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** 158+ stale `claude/auto-*` and `claude/learnings-*` branches across 24 repos. The auto-merger creates PRs and merges but never deletes source branches. Combined with PAT-scope-blocked branches. First flagged S37 (run #15), now flagged 6 times.
 **Suggestion:** Add post-merge branch deletion to auto-merger and a periodic cleanup script for orphaned branches.
 **Priority:** HIGH — cosmetic but growing rapidly.
+
+---
+
+## 2026-04-07 — Learning Agent Run #26
+
+### S70: pm-interview-practice missing CLAUDE.md
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** pm-interview-practice is a new repo (4 commits) with a live audio mock interview tool. It has Express + WebSocket + Claude CLI interviewer + browser TTS/STT. A memory file (`project_interview_practice`) documents the architecture but the repo itself has no CLAUDE.md. The `context.md` exists but CLAUDE.md is what agents read first.
+**Suggestion:** Create CLAUDE.md with architecture overview (Express+WS on port 3456, Claude CLI via sonnet, browser speech APIs), deployment (SSH tunnel to VM), and key files. Low urgency since this repo gets infrequent changes.
+**Priority:** LOW — new repo, infrequent changes.
+
+### S71: PAT scope still blocking 24+ repos (S68 — 5th escalation, CRITICAL)
+**File:** GitHub PAT configuration (infrastructure)
+**Issue:** S60→S61→S68→still unfixed. Every autonomousDev run targeting an out-of-scope repo creates another stranded branch with no PR. 158+ unmerged branches accumulating. This is now the longest-standing CRITICAL issue (first flagged run #25 as S60, 8 runs ago).
+**Suggestion:** Switch to a classic PAT with full repo scope, or add all actively-developed repos to the fine-grained PAT. Then bulk-create PRs for pending branches.
+**Priority:** CRITICAL — 5th time flagged. Infrastructure debt is compounding.
+
+### S72: Stale branch accumulation continues (S69 — 7th flag, HIGH)
+**File:** Multiple repos (24+ affected)
+**Issue:** 158+ stale branches. autonomousDev alone has 10 unmerged `claude/learnings-*` remote branches. The auto-merger never deletes source branches after merge, and PAT-blocked branches accumulate indefinitely.
+**Suggestion:** Add post-merge branch deletion to auto-merger. Run periodic cleanup for merged-content branches.
+**Priority:** HIGH — 7th time flagged.
