@@ -537,3 +537,24 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged in S70, S75, S78, still not created. Repo has 4 commits, live deployment at /interview/, deep closeout posted, and memory documentation but no CLAUDE.md.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 4th time flagged, infrequent changes.
+
+---
+
+## 2026-04-08 — Learning Agent Run #30
+
+### S82: auto-shorts-worker CLAUDE.md missing clip selection criteria (memory-only gap — RESOLVED)
+**File:** `auto-shorts-worker/CLAUDE.md`
+**Issue:** Two feedback memories (`feedback_shorts_profanity_gate`, `feedback_shorts_streamer_voice`) existed only in memory — not in the repo CLAUDE.md or agentGuidance. These are clip selection rules: profanity raises the quality bar, and streamer voice takes priority over guests. Any agent selecting clips wouldn't know about these criteria.
+**Status:** Migrated to auto-shorts-worker CLAUDE.md in this run (PR #13). Added "Clip Selection Criteria" section above the existing "Clip Boundary Rule".
+
+### S83: PAT scope blocking 24+ repos — 231+ branches (S79 — 9th escalation, CRITICAL)
+**File:** GitHub PAT configuration (infrastructure)
+**Issue:** S60→S61→S68→S71→S73→S76→S79→still unfixed. 231+ unmerged `claude/auto-*` and `claude/learnings-*` branches across 14+ repos with >5 branches each. The fine-grained PAT only covers a subset of repos, so autonomousDev runs push branches but can't create PRs. Every run adds 1-3 more stranded branches. First flagged run #25, now 9th consecutive run.
+**Suggestion:** Switch to a classic PAT with full repo scope, or add all actively-developed repos to the fine-grained PAT. Then bulk-create PRs for pending branches.
+**Priority:** CRITICAL — 9th time flagged. No progress since first report.
+
+### S84: Stale branch accumulation — 231+ branches (S80 — 11th flag, HIGH)
+**File:** Multiple repos (14+ repos with >5 branches each)
+**Issue:** 231+ stale `claude/auto-*` and `claude/learnings-*` branches. The auto-merger never deletes source branches after merge. PAT-blocked branches accumulate indefinitely. First flagged S37 (run #15), now 11th time flagged.
+**Suggestion:** Add post-merge branch deletion to auto-merger. Run periodic cleanup for branches whose content is already on main.
+**Priority:** HIGH — 11th time flagged.
