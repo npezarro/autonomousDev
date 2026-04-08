@@ -624,3 +624,25 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged in S70, S75, S78, S81, S85, S87, S90 — still not created. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 7th time flagged, infrequent changes.
+
+---
+
+## 2026-04-08 — Learning Agent Run #34
+
+### S94: PAT scope blocking 24+ repos — 294 branches across 20 repos (S91 — 13th escalation, CRITICAL)
+**File:** GitHub PAT configuration (infrastructure)
+**Issue:** S60→S61→S68→S71→S73→S76→S79→S83→S85→S88→S91→still unfixed. Unmerged `claude/auto-*` and `claude/learnings-*` branches now total **294** across **20 repos** (up from 282/34 at run #33). Top offenders: [private Discord bot] (58), groceryGenius (31), botlink (29), promptlibrary (27), freeGames (23), valueSortify (20). The fine-grained PAT only covers a subset of repos, so autonomousDev runs push branches but can't create PRs. First flagged run #25, now 13th consecutive run.
+**Suggestion:** Switch to a classic PAT with full repo scope, or add all actively-developed repos to the fine-grained PAT. Then bulk-create PRs for pending branches.
+**Priority:** CRITICAL — 13th time flagged. Branch count grew 282→294. No progress on underlying PAT scope issue.
+
+### S95: Stale branch accumulation — 294 branches across 20 repos (S92 — 15th flag, HIGH)
+**File:** Multiple repos (20 affected)
+**Issue:** 294 stale `claude/auto-*` and `claude/learnings-*` branches across 20 repos. The auto-merger never deletes source branches after merge. PAT-blocked branches accumulate indefinitely. First flagged S37 (run #15), now 15th time flagged.
+**Suggestion:** Add post-merge branch deletion to auto-merger. Run periodic cleanup for branches whose content is already on main.
+**Priority:** HIGH — 15th time flagged.
+
+### S96: pm-interview-practice still missing CLAUDE.md (S93 — 8th flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged in S70, S75, S78, S81, S85, S87, S90, S93 — still not created. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 8th time flagged, infrequent changes.
