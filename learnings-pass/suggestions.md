@@ -646,3 +646,40 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged in S70, S75, S78, S81, S85, S87, S90, S93 — still not created. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 8th time flagged, infrequent changes.
+
+---
+
+## 2026-04-08 — Learning Agent Run #37
+
+### S106: upload pipeline CLAUDE.md missing fetch_analytics.py documentation
+**File:** `upload pipeline/CLAUDE.md`
+**Issue:** `fetch_analytics.py` (285 lines, 4 commits) added a standalone analytics fetcher with basic/full modes, token auto-sync from server, and batch API calls. Not documented in CLAUDE.md despite being a major new capability.
+**Suggestion:** Added "Analytics Fetcher" section documenting basic/full modes, token sync pattern, and batch API calls. (Done in this run.)
+
+### S107: auto-shorts CLAUDE.md missing server-side token exchange pattern
+**File:** `auto-shorts/CLAUDE.md`
+**Issue:** Server-side OAuth token exchange (ae563ba) replaced worker-dependent exchange with direct Google token endpoint calls. New `/worker/token` endpoint serves tokens to local fetcher. Settings UI always shows re-auth. Not documented.
+**Suggestion:** Added server-side token exchange bullet to Features section. (Done in this run.)
+
+### S108: browser-agent CLAUDE.md missing cowork session capture endpoints
+**File:** `browser-agent/CLAUDE.md`
+**Issue:** Commit 78e7a4b added 10+ `/cowork/*` endpoints to agent-server.js for Cowork session capture (snapshot, read, start, attach/detach, config, summary). CLAUDE.md had no mention of these endpoints. The `project_cowork_bridge` memory documented the relationship but the repo-level CLAUDE.md was stale.
+**Suggestion:** Added "Cowork Session Capture" section with full endpoint list and cross-reference to cowork-bridge repo. (Done in this run.)
+
+### S109: PAT scope blocking 24+ repos — 284 branches across repos (S94 — 16th escalation, CRITICAL)
+**File:** GitHub PAT configuration (infrastructure)
+**Issue:** S60→...→S94→still unfixed. Unmerged `claude/auto-*` and `claude/learnings-*` branches now total **284**. The fine-grained PAT only covers a subset of repos, so autonomousDev runs push branches but can't create PRs. First flagged run #25, now 16th consecutive run.
+**Suggestion:** Switch to a classic PAT with full repo scope, or add all actively-developed repos to the fine-grained PAT. Then bulk-create PRs for pending branches.
+**Priority:** CRITICAL — 16th time flagged. No progress on underlying PAT scope issue.
+
+### S110: Stale branch accumulation — 284 branches (S95 — 17th flag, HIGH)
+**File:** Multiple repos
+**Issue:** 284 stale `claude/auto-*` and `claude/learnings-*` branches. The auto-merger never deletes source branches after merge. PAT-blocked branches accumulate indefinitely. First flagged S37 (run #15), now 17th time flagged.
+**Suggestion:** Add post-merge branch deletion to auto-merger. Run periodic cleanup for branches whose content is already on main.
+**Priority:** HIGH — 17th time flagged.
+
+### S111: pm-interview-practice still missing CLAUDE.md (S96 — 11th flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged in S70, S75, S78, S81, S85, S87, S90, S93, S96, and runs 35-36 — still not created.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 11th time flagged, infrequent changes.
