@@ -646,3 +646,33 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged in S70, S75, S78, S81, S85, S87, S90, S93 — still not created. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 8th time flagged, infrequent changes.
+
+---
+
+## 2026-04-08 — Learning Agent Run #36
+
+### S101: written-voice.md missing em dash anti-pattern (RESOLVED)
+**File:** `agentGuidance/guidance/written-voice.md`
+**Status:** Added item #11 to "Common Mistakes When Imitating Nick's Voice": em dashes are an AI writing tell. Nick uses regular dashes, commas, or new sentences. Discovered in Dan Sears outreach session (2026-04-08), user noted "em dashes are AI anti-pattern" when reviewing draft. (Done in this run.)
+
+### S102: auto-shorts CLAUDE.md missing analytics dashboard feature (RESOLVED)
+**File:** `auto-shorts/CLAUDE.md`
+**Status:** Added Features section documenting analytics dashboard (Phase 1): per-clip performance tracking via YouTube Data API, new tables, 3 dashboard views, preset comparison. Commit 084a0d5 added the feature but CLAUDE.md wasn't updated. (Done in this run.)
+
+### S103: PAT scope blocking 24+ repos — 281 branches across 20 repos (S98 — 15th escalation, CRITICAL)
+**File:** GitHub PAT configuration (infrastructure)
+**Issue:** S60→...→S98→still unfixed. Unmerged `claude/auto-*` and `claude/learnings-*` branches now total **281** across **20 repos**. The fine-grained PAT only covers a subset of repos, so autonomousDev runs push branches but can't create PRs. First flagged run #25, now 15th consecutive run.
+**Suggestion:** Switch to a classic PAT with full repo scope, or add all actively-developed repos to the fine-grained PAT. Then bulk-create PRs for pending branches.
+**Priority:** CRITICAL — 15th time flagged. No progress on underlying PAT scope issue.
+
+### S104: Stale branch accumulation — 281 branches across 20 repos (S99 — 17th flag, HIGH)
+**File:** Multiple repos (20 affected)
+**Issue:** 281 stale `claude/auto-*` and `claude/learnings-*` branches. The auto-merger never deletes source branches after merge. PAT-blocked branches accumulate indefinitely. First flagged S37 (run #15), now 17th time flagged.
+**Suggestion:** Add post-merge branch deletion to auto-merger. Run periodic cleanup for branches whose content is already on main.
+**Priority:** HIGH — 17th time flagged.
+
+### S105: pm-interview-practice still missing CLAUDE.md (S100 — 10th flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 10 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 10th time flagged, infrequent changes.
