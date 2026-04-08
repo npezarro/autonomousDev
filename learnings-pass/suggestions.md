@@ -676,3 +676,30 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 10 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 10th time flagged, infrequent changes.
+
+---
+
+## 2026-04-08 — Learning Agent Run #38
+
+### S112: auto-shorts CLAUDE.md missing experimentation framework and learning agent (RESOLVED)
+**File:** `auto-shorts/CLAUDE.md`
+**Issue:** 8 commits since run #37 added per-channel learning agent (`shorts-learning-agent.js`), experimentation framework with AI-suggested experiments, channel switcher dropdown, and experiment queuing. None documented in CLAUDE.md. These are major new subsystems — the learning agent auto-injects insights into worker prompts, and experiments let you A/B test clip selection strategies.
+**Suggestion:** Added 3 feature bullets to CLAUDE.md: per-channel learning agent, experimentation framework, channel switcher. (Done in this run.)
+
+### S113: PAT scope blocking 24+ repos — 273 branches (S103 — 17th escalation, CRITICAL)
+**File:** GitHub PAT configuration (infrastructure)
+**Issue:** S60→...→S103→still unfixed. Unmerged `claude/auto-*` and `claude/learnings-*` branches total **273** across repos. The fine-grained PAT only covers a subset of repos, so autonomousDev runs push branches but can't create PRs. First flagged run #25, now 17th consecutive run.
+**Suggestion:** Switch to a classic PAT with full repo scope, or add all actively-developed repos to the fine-grained PAT. Then bulk-create PRs for pending branches.
+**Priority:** CRITICAL — 17th time flagged. No progress on underlying PAT scope issue.
+
+### S114: Stale branch accumulation — 273 branches (S104 — 18th flag, HIGH)
+**File:** Multiple repos
+**Issue:** 273 stale `claude/auto-*` and `claude/learnings-*` branches. The auto-merger never deletes source branches after merge. PAT-blocked branches accumulate indefinitely. First flagged S37 (run #15), now 18th time flagged.
+**Suggestion:** Add post-merge branch deletion to auto-merger. Run periodic cleanup for branches whose content is already on main.
+**Priority:** HIGH — 18th time flagged.
+
+### S115: pm-interview-practice still missing CLAUDE.md (S105 — 12th flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 12 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 12th time flagged, infrequent changes.
