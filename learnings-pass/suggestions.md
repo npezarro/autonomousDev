@@ -558,3 +558,25 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** 231+ stale `claude/auto-*` and `claude/learnings-*` branches. The auto-merger never deletes source branches after merge. PAT-blocked branches accumulate indefinitely. First flagged S37 (run #15), now 11th time flagged.
 **Suggestion:** Add post-merge branch deletion to auto-merger. Run periodic cleanup for branches whose content is already on main.
 **Priority:** HIGH — 11th time flagged.
+
+---
+
+## 2026-04-08 — Learning Agent Run #31
+
+### S85: PAT scope blocking 24+ repos — 264 branches across 29 repos (S83 — 10th escalation, CRITICAL)
+**File:** GitHub PAT configuration (infrastructure)
+**Issue:** S60→S61→S68→S71→S73→S76→S79→S83→still unfixed. Unmerged `claude/auto-*` and `claude/learnings-*` branches now total **264** across **29 repos** (up from 231 across 14+ at run #30). Top offenders: [private Discord bot] (44), botlink (26), groceryGenius (22), promptlibrary (22), freeGames (18), valueSortify (16). The fine-grained PAT only covers a subset of repos, so autonomousDev runs push branches but can't create PRs. First flagged run #25, now 10th consecutive run.
+**Suggestion:** Switch to a classic PAT with full repo scope, or add all actively-developed repos to the fine-grained PAT. Then bulk-create PRs for pending branches.
+**Priority:** CRITICAL — 10th time flagged. Branch count grew from 231→264 despite some branches being merged. No progress on the underlying PAT scope issue.
+
+### S86: Stale branch accumulation — 264 branches across 29 repos (S84 — 12th flag, HIGH)
+**File:** Multiple repos (29 affected)
+**Issue:** 264 stale `claude/auto-*` and `claude/learnings-*` branches across 29 repos. The auto-merger never deletes source branches after merge. PAT-blocked branches accumulate indefinitely. First flagged S37 (run #15), now 12th time flagged. Repos with highest counts: [private Discord bot] (44), botlink (26), groceryGenius (22), promptlibrary (22).
+**Suggestion:** Add post-merge branch deletion to auto-merger. Run periodic cleanup for branches whose content is already on main.
+**Priority:** HIGH — 12th time flagged, 264 branches is increasingly problematic.
+
+### S87: pm-interview-practice still missing CLAUDE.md (S81 — 5th flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged in S70 (run #26), S75 (run #27), S78 (run #28), S81 (run #29), still not created. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 5th time flagged, infrequent changes.
