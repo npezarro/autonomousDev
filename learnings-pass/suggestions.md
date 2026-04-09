@@ -791,3 +791,30 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-09 — Learning Agent Run #45
+
+### S136: freeGames CLAUDE.md — orchestrator-first login pattern (RESOLVED)
+**File:** `freeGames/CLAUDE.md`
+**Issue:** Commit `d9e305b` added 246 LOC for GOG + Itch.io orchestrator-first login flows (Cloudflare auto-solve, eval-based 2FA digit fill, headless fallback) but CLAUDE.md had no mention of the orchestrator login strategy or the `-login` platform suffix convention.
+**Resolution:** Added "Login Strategy" section to freeGames CLAUDE.md in this run.
+
+### S137: PAT scope still blocking repos (S133 — 27th escalation, CRITICAL)
+**File:** GitHub PAT configuration (infrastructure)
+**Issue:** 300 stale `claude/` branches across 37 repos. New PAT was created (`privateContext` commit `258e84b`) but branch count continues to grow. Every autonomousDev run targeting an out-of-scope repo creates another stranded branch.
+**Suggestion:** Verify new PAT scope covers all repos. Bulk-create PRs for pending branches. Consider classic PAT with full repo scope.
+**Priority:** CRITICAL — 27th time flagged. Note: PAT was just created — may already be resolved, pending verification.
+
+### S138: Stale branch accumulation — 300 branches (S134 — 27th flag, HIGH)
+**File:** Multiple repos (37 affected)
+**Issue:** 300 stale `claude/auto-*` and `claude/learnings-*` branches. Auto-merger never deletes source branches after merge. PAT-blocked branches accumulate indefinitely. First flagged S37 (run #15).
+**Suggestion:** Add post-merge branch deletion to auto-merger. Run periodic cleanup for branches whose content is already on main.
+**Priority:** HIGH — 27th time flagged. Crossed 300 threshold.
+
+### S139: pm-interview-practice still missing CLAUDE.md (S130 — 17th flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 17 times since S70. Repo has a live deployment, deep closeout, and memory documentation but no CLAUDE.md.
+**Suggestion:** Create CLAUDE.md with architecture overview, deployment details, key files.
+**Priority:** LOW — 17th time flagged, infrequent changes.
