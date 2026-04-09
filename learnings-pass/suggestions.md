@@ -791,3 +791,36 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-09 — Learning Agent Run #44 (revised)
+
+### S131: browser-agent CLAUDE.md missing file upload capability v1.6.0 (RESOLVED)
+**File:** `browser-agent/CLAUDE.md`
+**Issue:** Commit `dac9ebf` added file upload capability (168 LOC across 3 files — server blob store, TM script `uploadFile` action, CLI `upload` command) but CLAUDE.md was not updated. Agents using browser-agent for automation (e.g., fb-marketplace-poster) wouldn't know file upload is available.
+**Suggestion:** Added "File Upload (v1.6.0+)" section to CLAUDE.md documenting `upload` CLI command, standard vs drag-drop modes, blob endpoints, and 5-min TTL. (Done in this run.)
+
+### S132: Multi-PC worker failover not documented in local-worker-bridge guidance
+**File:** `agentGuidance/guidance/local-worker-bridge.md`
+**Issue:** CLI interactions report multi-PC worker failover deployed (PR #144) — two local workers with priority-based routing (local1 → local2 → VM). The local-worker-bridge.md guidance only documents single-worker architecture. Could not locate source code changes to determine exact implementation details.
+**Suggestion:** Once source changes are confirmed, update local-worker-bridge.md with multi-worker failover section: priority routing, port assignments, health check behavior.
+**Priority:** MEDIUM — new infrastructure capability, but low frequency of agent interaction with worker routing.
+
+### S133: PAT scope blocking repos — ~296 branches (S128 — 25th escalation, CRITICAL)
+**File:** GitHub PAT configuration (infrastructure)
+**Issue:** S60→...→S128→still unfixed. Unmerged `claude/auto-*` and `claude/learnings-*` branches across repos. The fine-grained PAT only covers a subset of repos, so autonomousDev runs push branches but can't create PRs. First flagged run #25, now 25th consecutive run.
+**Suggestion:** Switch to a classic PAT with full repo scope, or add all actively-developed repos to the fine-grained PAT. Then bulk-create PRs for pending branches.
+**Priority:** CRITICAL — 25th time flagged. No progress on underlying PAT scope issue.
+
+### S134: Stale branch accumulation — ~296 branches (S129 — 26th flag, HIGH)
+**File:** Multiple repos
+**Issue:** ~296 stale `claude/auto-*` and `claude/learnings-*` branches. The auto-merger never deletes source branches after merge. PAT-blocked branches accumulate indefinitely. First flagged S37 (run #15), now 26th time flagged.
+**Suggestion:** Add post-merge branch deletion to auto-merger. Run periodic cleanup for branches whose content is already on main.
+**Priority:** HIGH — 26th time flagged.
+
+### S135: pm-interview-practice still missing CLAUDE.md (S130 — 17th flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 17 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 17th time flagged, infrequent changes.
