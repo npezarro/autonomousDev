@@ -791,3 +791,23 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-10 — Learning Agent Run #69
+
+### S198: Stale branch accumulation — 468 branches (S194 — 46th flag, HIGH)
+**File:** Multiple repos
+**Issue:** 468 stale `claude/auto-*` and `claude/learnings-*` branches across repos (up from 464 at run #68). Top offenders: Discord bot repo (61), autonomousDev (44), groceryGenius (36), botlink (32). Auto-merger never deletes source branches after merge.
+**Suggestion:** Add post-merge branch deletion to auto-merger. Run periodic cleanup for branches whose content is already on main/production.
+**Priority:** HIGH — 46th time flagged. Count continues to grow.
+
+### S199: pm-interview-practice still missing CLAUDE.md (S195 — 39th flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 39 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 39th time flagged, infrequent changes.
+
+### S200: phone-agent now has CLAUDE.md (S197 resolved)
+**File:** `phone-agent/CLAUDE.md`
+**Status:** RESOLVED — created in learnings-69 run. Documents Groq swap, TM key management, safety constraints, and architecture.
