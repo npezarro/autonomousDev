@@ -791,3 +791,31 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-10 — Learning Agent Run #68
+
+### S194: Stale branch accumulation — 464 branches (S191 — 45th flag, HIGH)
+**File:** Multiple repos
+**Issue:** 464 stale remote branches across all repos (up from 328 at run #67). The auto-merger never deletes source branches after merge. PAT-blocked branches accumulate indefinitely. First flagged S37 (run #15), now 45th time flagged.
+**Suggestion:** Add post-merge branch deletion to auto-merger. Run periodic cleanup for branches whose content is already on main.
+**Priority:** HIGH — 45th time flagged. Branch count 328→464.
+
+### S195: pm-interview-practice still missing CLAUDE.md (S192 — 38th flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 38 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 38th time flagged, infrequent changes.
+
+### S196: New repo claude-tray-notifier has no CLAUDE.md
+**File:** `claude-tray-notifier/CLAUDE.md` (does not exist)
+**Issue:** New Electron tray notifier for Claude Code with 6 commits. Uses relay architecture to the VM. No agent documentation.
+**Suggestion:** Create CLAUDE.md when the repo stabilizes. Currently too new (all commits from today). Architecture: Electron main/renderer, panda icons, relay to VM for conversation data, conversation title + input type classification.
+**Priority:** LOW — brand new repo, still actively evolving.
+
+### S197: New repo phone-agent has no CLAUDE.md
+**File:** `phone-agent/CLAUDE.md` (does not exist)
+**Issue:** New AI phone call agent using Google Voice via browser-agent pattern (TM userscript + orchestrator + CLI). Single initial commit.
+**Suggestion:** Create CLAUDE.md when the repo has more than an initial commit. Architecture mirrors browser-agent: phone-agent.user.js (TM script) + orchestrator.js + phone-cli.sh.
+**Priority:** LOW — single commit, very new.
