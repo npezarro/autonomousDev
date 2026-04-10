@@ -39,7 +39,8 @@
     "REDACTED_DISCORD_BOT_REPO",
     "agentGuidance",
     "auto-dev",
-    "privateContext"
+    "privateContext",
+    "knowledgeBase"
   ],
   "staging_only": true,
   "cap_threshold_percent": 70,
