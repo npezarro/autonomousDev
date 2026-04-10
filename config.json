@@ -8,6 +8,7 @@
     "aisleOffersFilterClaimandTracking",
     "llm-tasks",
     "llm-tasks-cleanup",
+    "auto-shorts",
     "auto-shorts-worker",
     "botlink",
     "claude-auto-merger",
@@ -16,11 +17,10 @@
     "freeGames",
     "groceryGenius",
     "humblechoice-oneclickclaim",
-
+    "job-scraper",
     "context-mgmt",
     "markdownMakerBookmarklet",
     "page-reader",
-
     "pezantTools",
     "promptlibrary",
     "rakutenOfferAutoAdder",
