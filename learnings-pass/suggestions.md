@@ -791,3 +791,19 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-10 — Learning Agent Run #57
+
+### S171: Stale branch cleanup — 318 stale claude/ branches (S169 — 33rd flag, HIGH)
+**File:** Multiple repos
+**Issue:** 318 stale `claude/auto-*` and `claude/learnings-*` branches across 39 repos (up from 299 at run #56). Top offenders: the Discord bot repo (46), autonomousDev (31), botlink (28), groceryGenius (25), promptlibrary (23), freeGames (22). The auto-merger merges PRs but never deletes source branches. PAT scope is resolved so bulk cleanup is possible.
+**Suggestion:** Add post-merge branch deletion to auto-merger. Run `git push origin --delete` for branches whose PRs are already merged. Consider a one-time cleanup script.
+**Priority:** HIGH — 33rd time flagged. Branch count trending up (299→318).
+
+### S172: pm-interview-practice still missing CLAUDE.md (S170 — 27th flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 27 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 27th time flagged, infrequent changes.
