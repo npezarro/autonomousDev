@@ -42,12 +42,13 @@ Read journal entries, PR descriptions, and recent git commits. Look for:
 
 Check whether the learning is already documented in the guidance files. If a gap exists, add it to the right file.
 
-### Pass 2: Memory-Only Learnings (3-Destination Rule Enforcement)
+### Pass 2: Memory-Only Learnings (Multi-Destination Rule Enforcement)
 
-Review the memory scan for learnings that exist ONLY in memory but NOT in agentGuidance or the relevant repo's CLAUDE.md. The 3-destination rule says every learning goes to:
+Review the memory scan for learnings that exist ONLY in memory but NOT in agentGuidance or the relevant repo's CLAUDE.md. The multi-destination rule says every learning goes to:
 1. Memory (cross-session recall)
 2. Repo CLAUDE.md (repo-specific rules)
 3. agentGuidance or privateContext (cross-project patterns)
+4. knowledgeBase (when a learning spans 3+ repos)
 
 For each memory-only learning, decide:
 - Is it a cross-project pattern? → Stage an edit to the right `agentGuidance/guidance/*.md` file
