@@ -92,6 +92,20 @@ Stage suggestions as comments in a `learnings-pass/suggestions.md` file (append-
 
 If any recent work demonstrated patterns relevant to agent profiles (security findings, architectural decisions, testing strategies), append an experience entry to the appropriate `agentGuidance/profiles/<agent>/experience.md`.
 
+### Pass 6: Wiki Cross-Reference Check
+
+When you update a repo's CLAUDE.md or agentGuidance guidance file in Passes 1-3, check if any knowledgeBase wiki pages reference that file or repo.
+
+1. Read `{{REPOS_ROOT}}/knowledgeBase/MANIFEST.md` to find wiki pages sourced from the modified file
+2. For each matching wiki page:
+   - Read the page
+   - Check if your update changes anything the wiki page describes
+   - If yes, stage an edit to the wiki page on a branch
+3. Update the wiki page's `updated` frontmatter field
+4. Also check `consumers` in wiki page frontmatter: if you're updating repo X and a wiki page lists X as a consumer, review that wiki page for accuracy
+
+**Priority:** Lower than Passes 1-5. Only do this if you have capacity remaining.
+
 ## Where to Stage Changes
 
 **All changes go on a branch for review. Never commit to main/production directly.**
