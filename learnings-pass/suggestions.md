@@ -791,3 +791,40 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-10 — Learning Agent Run #51
+
+### S157: auto-shorts CLAUDE.md missing OAuth token refresh docs (RESOLVED)
+**File:** `auto-shorts/CLAUDE.md`
+**Issue:** Commit `5cde4e5` added `lib/token-refresh.js` with automatic OAuth access token refresh, 5-min expiry buffer, disk persistence, and Discord failure alerting. CLAUDE.md's "Server-side token exchange" bullet didn't mention auto-refresh.
+**Suggestion:** Added "Automatic OAuth token refresh" bullet to Features section. (Done in this run — PR #17.)
+
+### S158: Stale branch cleanup — 294 branches, PAT fixed (S155 — 27th flag, HIGH)
+**File:** Multiple repos (32 affected)
+**Issue:** 294 stale `claude/auto-*` and `claude/learnings-*` branches across 32 repos. PAT scope was resolved in run #49 so cleanup is fully actionable. The auto-merger still does not delete source branches after merge.
+**Suggestion:** (1) Add post-merge branch deletion to claude-auto-merger. (2) Run bulk cleanup: `git push origin --delete` for branches whose commits are already on main/production.
+**Priority:** HIGH — 27th time flagged, 2nd run where actionable.
+
+### S159: pm-interview-practice still missing CLAUDE.md (S156 — 21st flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 21 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 21st time flagged, infrequent changes.
+
+---
+
+## 2026-04-10 — Learning Agent Run #52
+
+### S160: Stale branch cleanup — 312 branches, PAT fixed (S158 — 28th flag, HIGH)
+**File:** Multiple repos
+**Issue:** 312 stale `claude/auto-*` and `claude/learnings-*` branches across repos (up from 294 at run #51). PAT scope was resolved in run #49 so cleanup is fully actionable. The auto-merger still does not delete source branches after merge. Branch count growing ~18/day.
+**Suggestion:** (1) Add post-merge branch deletion to claude-auto-merger. (2) Run bulk cleanup: `git push origin --delete` for branches whose commits are already on main/production.
+**Priority:** HIGH — 28th time flagged, 3rd run where actionable. Growth rate accelerating.
+
+### S161: pm-interview-practice still missing CLAUDE.md (S159 — 22nd flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 22 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 22nd time flagged, infrequent changes.
