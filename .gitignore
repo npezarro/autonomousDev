@@ -8,3 +8,8 @@ state.json
 SCRUB-LIST.md
 AUDIT-REPORT.md
 replacements.txt
+.env.*
+node_modules/
+*.pem
+*.key
+.DS_Store
