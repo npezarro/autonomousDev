@@ -791,3 +791,31 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-10 — Learning Agent Run #46
+
+### S140: auto-shorts experiment auto-seeding + stale sweeper undocumented (RESOLVED)
+**File:** `auto-shorts/CLAUDE.md`
+**Issue:** Commits `951cb10` (auto-seed experiment jobs + stale job sweeper) and `01b8183` (remove duration filter) added operational behavior not reflected in CLAUDE.md. Experiment auto-seeding from library videos, stale job sweeper (2hr timeout), and removal of the 60s minimum duration filter were all undocumented.
+**Suggestion:** Added Job Lifecycle section and updated experimentation framework description.
+**Priority:** MEDIUM — resolved in this run.
+
+### S141: New GitHub PAT created — PAT scope status update (S137 — 28th escalation, CRITICAL)
+**File:** GitHub PAT configuration (infrastructure)
+**Issue:** A new GitHub PAT was created on 2026-04-09 (privateContext commit `258e84b`). However, 302+ unmerged `claude/` branches remain across 37 repos (up from 294 at run #43). The new PAT's scope is unclear — it may or may not cover all repos. The branch backlog continues to grow. First flagged run #25 (S60).
+**Suggestion:** Verify the new PAT's repo scope covers all 37+ actively-developed repos. If it does, bulk-create PRs for the 302+ pending branches. If it doesn't, expand scope.
+**Priority:** CRITICAL — 28th time flagged. New PAT exists but branch backlog still growing.
+
+### S142: Stale branch accumulation — 302+ branches across 37 repos (S129 — 28th flag, HIGH)
+**File:** Multiple repos (37 affected)
+**Issue:** 302+ stale `claude/auto-*` and `claude/learnings-*` branches (up from 294 at run #43). The auto-merger never deletes source branches after merge. PAT-blocked branches accumulate indefinitely. First flagged S37 (run #15).
+**Suggestion:** Add post-merge branch deletion to auto-merger. Run periodic cleanup for branches whose content is already on main.
+**Priority:** HIGH — 28th time flagged.
+
+### S143: pm-interview-practice still missing CLAUDE.md (S130 — 18th flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 18 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 18th time flagged, infrequent changes.
