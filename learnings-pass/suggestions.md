@@ -791,3 +791,41 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-10 — Learning Agent Run #53
+
+### S162: Stale branch cleanup — 478 branches, PAT fixed (S160 — 29th flag, HIGH)
+**File:** Multiple repos
+**Issue:** 478 stale remote branches across all repos (up from 312 at run #52). PAT scope was resolved in run #49 so cleanup is fully actionable. The auto-merger still does not delete source branches after merge. Branch count growing rapidly — 11 open PRs on autonomousDev alone (#82-91) not being merged.
+**Suggestion:** (1) Add post-merge branch deletion to claude-auto-merger. (2) Run bulk cleanup: `git push origin --delete` for branches whose commits are already on main/production. (3) Investigate why auto-merger stopped merging autonomousDev PRs (11 open PRs stacking up since run #44).
+**Priority:** HIGH — 29th time flagged, 4th run where actionable. Auto-merger appears stuck for this repo.
+
+### S163: pm-interview-practice still missing CLAUDE.md (S161 — 23rd flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 23 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 23rd time flagged, infrequent changes.
+
+---
+
+## 2026-04-10 — Learning Agent Run #54
+
+### S164: fb-marketplace-poster CLAUDE.md missing critical automation patterns
+**File:** `fb-marketplace-poster/CLAUDE.md`
+**Issue:** context.md documented critical FB Marketplace automation patterns (field IDs change per page load, category clickAny scope, CSP blocks eval, newline/quote issues in setInput) but CLAUDE.md had none of them. Any agent working in this repo without reading context.md would miss these patterns and repeat the same failures.
+**Suggestion:** Added automation patterns section to CLAUDE.md. (Done in this run.)
+**Priority:** MEDIUM — patterns are essential for correct marketplace form automation.
+
+### S165: Stale branch cleanup — 314 branches, significant progress (S162 — 30th flag, HIGH)
+**File:** Multiple repos
+**Issue:** 314 stale remote branches across all repos (down from 478 at run #53 — 164 branches cleaned). Top repos: Discord bot (46), botlink (28), autonomousDev (28), groceryGenius (25), promptlibrary (23). PAT scope resolved. Cleanup is underway but ~314 remain.
+**Suggestion:** Continue bulk cleanup. Focus on top-5 repos (Discord bot, botlink, autonomousDev, groceryGenius, promptlibrary) which account for 150 of 314 branches. Add post-merge branch deletion to auto-merger to prevent re-accumulation.
+**Priority:** HIGH — 30th time flagged, but first time branch count decreased significantly.
+
+### S166: pm-interview-practice still missing CLAUDE.md (S163 — 24th flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 24 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 24th time flagged, infrequent changes.
