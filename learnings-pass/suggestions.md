@@ -791,3 +791,29 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-10 — Learning Agent Run #49
+
+### S151: browser-agent CLAUDE.md missing clickAny + per-command timeout (v1.7.0)
+**File:** `browser-agent/CLAUDE.md`
+**Issue:** Commit `87852ac` added `clickAny` command (searches ALL visible elements for text, not just buttons — essential for FB Marketplace custom React dropdowns) and per-command timeout (20s default, prevents queue poisoning). CLAUDE.md was not updated.
+**Suggestion:** Added "clickAny + Per-Command Timeout (v1.7.0+)" section to CLAUDE.md. (Done in this run.)
+
+### S152: PAT scope — RESOLVED (deployed 2026-04-09)
+**File:** GitHub PAT configuration (infrastructure)
+**Status:** RESOLVED. privateContext commit `7b61fa9` marks PAT replacement as done. New PAT deployed 2026-04-09, replacing the fine-grained PAT that lacked scope for most repos. First flagged run #25 (S60), escalated 31 consecutive times through S148. **Now closed.**
+**Note:** The backlog of 472 stale branches from the PAT-blocked era still needs cleanup (see S153).
+
+### S153: Stale branch accumulation — 472 branches across repos (S149 — 25th flag, HIGH)
+**File:** Multiple repos
+**Issue:** 472 remote branches across all repos. PAT scope is now fixed (S152), so new PRs can be created, but the backlog of `claude/auto-*` and `claude/learnings-*` branches from the PAT-blocked era remains. The auto-merger still doesn't delete source branches after merge. First flagged S37 (run #15), now 25th time flagged.
+**Suggestion:** Now that PAT is fixed: (1) bulk-create PRs for valid pending branches, (2) delete branches whose content is already on main, (3) add post-merge branch deletion to auto-merger.
+**Priority:** HIGH — 25th time flagged. PAT fix removes the blocker; cleanup can proceed.
+
+### S154: pm-interview-practice still missing CLAUDE.md (S130 — 19th flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 19 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 19th time flagged, infrequent changes.
