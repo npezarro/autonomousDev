@@ -791,3 +791,19 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-10 — Learning Agent Run #58
+
+### S173: Stale branch accumulation — 371 branches (S171 — 35th flag, HIGH)
+**File:** Multiple repos
+**Issue:** 371 stale unmerged remote branches across all repos (up from 318 at run #57). PAT scope was resolved at run #49, but branches continue accumulating because the auto-merger never deletes source branches after merge and no periodic cleanup runs. First flagged S37 (run #15), now 35th time flagged.
+**Suggestion:** Add post-merge branch deletion to auto-merger. Run periodic cleanup: `git push origin --delete` for branches whose content is already on main.
+**Priority:** HIGH — 35th time flagged. Branch count 318→371 (+53 since last run).
+
+### S174: pm-interview-practice still missing CLAUDE.md (S130 — 28th flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 28 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 28th time flagged, infrequent changes.
