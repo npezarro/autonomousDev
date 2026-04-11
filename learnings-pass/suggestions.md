@@ -791,3 +791,25 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-11 — Learning Agent Run #75
+
+### S143: autonomousDev PR backlog — 30 open PRs, 37 learnings branches (6th HIGH escalation)
+**File:** autonomousDev repo management
+**Issue:** 30 open PRs (down from 35 at run #74 — 5 merged), but 37 learnings branches (up from 36). Each hourly run adds another suggestions.md PR that conflicts with prior unmerged ones. auto-merger can't resolve these conflicts, so the backlog is self-perpetuating.
+**Suggestion:** Batch-merge the oldest learnings PRs manually, or modify auto-merger to handle append-only conflict resolution on suggestions.md. The 5 recent merges show progress but the influx rate still exceeds merge rate.
+**Priority:** HIGH — 6th escalation. Self-perpetuating conflict cycle.
+
+### S144: Stale branches 96 (25th flag, MEDIUM — stable)
+**File:** Multiple repos
+**Issue:** 96 stale `claude/*` branches across repos (up slightly from 95 at run #74). Post-prune count stabilized around 86-96 range. PAT scope issue still means some repos can't auto-create PRs.
+**Suggestion:** Run another batch prune of merged branches. Add post-merge branch deletion to auto-merger.
+**Priority:** MEDIUM — 25th flag, count stable.
+
+### S145: pm-interview-practice still missing CLAUDE.md (21st flag, LOW)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 21 times. Repo has memory documentation and live deployment but no CLAUDE.md.
+**Suggestion:** Create CLAUDE.md with architecture docs.
+**Priority:** LOW — infrequent changes.
