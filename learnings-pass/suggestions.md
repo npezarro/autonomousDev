@@ -791,3 +791,25 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-11 — Learning Agent Run #77
+
+### S149: autonomousDev PR backlog — 38 open PRs, 39 learnings branches (8th HIGH escalation)
+**File:** autonomousDev repo management
+**Issue:** 38 open PRs (up from 37 at run #76), 39 learnings branches. Each quiet-run PR adds to the backlog since auto-merger can't resolve suggestions.md conflicts. The backlog grew 8.5% this cycle (35→38) despite being flagged as HIGH for 8 consecutive runs. S146 recommended pausing suggestions.md PRs for quiet runs — this run tests that threshold.
+**Suggestion:** Batch-merge or close stale learnings PRs. Consider: (1) close all quiet-run-only PRs older than 48h, (2) stop creating PRs when backlog > 30 and no new learnings exist.
+**Priority:** HIGH — 8th escalation. Self-perpetuating: each flag creates the next PR that grows the backlog.
+
+### S150: Stale branches stable at 90 (27th flag, MEDIUM — stable)
+**File:** Multiple repos
+**Issue:** 90 stale `claude/learnings-*` branches across repos (unchanged from run #76 after the prune in run #70). The auto-merger doesn't delete source branches after merge.
+**Suggestion:** Add post-merge branch deletion to auto-merger. Current count is stable post-prune.
+**Priority:** MEDIUM — 27th flag, but stable after prune.
+
+### S151: pm-interview-practice still missing CLAUDE.md (S130 — 23rd flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 23 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 23rd time flagged, infrequent changes.
