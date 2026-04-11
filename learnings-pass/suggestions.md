@@ -791,3 +791,25 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-11 — Learning Agent Run #73
+
+### S137: autonomousDev PR backlog — 34 open PRs, 35 learnings branches (4th HIGH escalation)
+**File:** Multiple (autonomousDev repo)
+**Issue:** 34 open PRs on autonomousDev, 35 `claude/learnings-*` remote branches. Each hourly learnings run adds a PR modifying `suggestions.md` — guaranteed merge conflicts that auto-merger cannot resolve. The backlog is self-perpetuating. Up from 33/34 at run #72.
+**Suggestion:** Squash-merge the oldest 15-20 PRs manually (resolve suggestions.md conflicts by concatenating). Consider: (a) learnings-pass appending to a date-stamped file instead of one monolithic suggestions.md, or (b) reducing frequency when no new commits are detected.
+**Priority:** HIGH — grows ~1 PR/hour, never self-resolves. 4th escalation.
+
+### S138: Stale branch count — 86 branches (S135 — 27th flag, stabilizing)
+**File:** Multiple repos
+**Issue:** 86 stale remote `claude/*` branches across all repos. Down from 93 (run #72). autonomousDev (35 branches) remains the main contributor.
+**Suggestion:** Cleaning autonomousDev PR backlog (S137) would drop this to ~50. Other repos are manageable.
+**Priority:** MEDIUM — trending down, autonomousDev is the bottleneck.
+
+### S139: pm-interview-practice still missing CLAUDE.md (S136 — 19th flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 19 times since S70. Repo has a live deployment and memory docs but no CLAUDE.md.
+**Suggestion:** Create CLAUDE.md with architecture, deployment, and key files.
+**Priority:** LOW — 19th flag, infrequent changes.
