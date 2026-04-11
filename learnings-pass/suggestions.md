@@ -791,3 +791,23 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-11 — Learning Agent Run #70
+
+### S201: Stale branch accumulation — 90 branches after prune (S129 — 24th flag, IMPROVING)
+**File:** Multiple repos
+**Issue:** 90 stale `claude/auto-*` and `claude/learnings-*` branches remain after `git fetch --prune` across all repos. Down significantly from 468 (run #69) — many remote branches were deleted. However, 10 unmerged learnings PRs are queued on autonomousDev alone (runs #60-#69), all modifying suggestions.md, which will cause merge conflicts.
+**Suggestion:** Merge the queued autonomousDev PRs in order (oldest first) and resolve conflicts, or squash them into a single PR. Add post-merge branch deletion to auto-merger.
+**Priority:** MEDIUM — branch count improved dramatically (468→90), but PR queue backlog needs attention.
+
+### S202: phone-agent CLAUDE.md — updated with WS proxy deployment pattern
+**File:** `phone-agent/CLAUDE.md`
+**Status:** Created in run #70 (PR #2). Supersedes run #69 PR #1 — adds Apache WebSocket proxy deployment section (must be inside VirtualHost, use ProxyPass ws:// with QSA flag) learned from commit 54c870d.
+
+### S203: pm-interview-practice still missing CLAUDE.md (S130 — 17th flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 17 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 17th time flagged, infrequent changes.
