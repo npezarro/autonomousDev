@@ -791,3 +791,53 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-11 — Learning Agent Run #77
+
+### S149: autonomousDev PR backlog — 38 open PRs, 39 learnings branches (8th HIGH escalation)
+**File:** autonomousDev repo management
+**Issue:** 38 open PRs (up from 37 at run #76), 39 learnings branches. Each quiet-run PR adds to the backlog since auto-merger can't resolve suggestions.md conflicts. The backlog grew 8.5% this cycle (35→38) despite being flagged as HIGH for 8 consecutive runs. S146 recommended pausing suggestions.md PRs for quiet runs — this run tests that threshold.
+**Suggestion:** Batch-merge or close stale learnings PRs. Consider: (1) close all quiet-run-only PRs older than 48h, (2) stop creating PRs when backlog > 30 and no new learnings exist.
+**Priority:** HIGH — 8th escalation. Self-perpetuating: each flag creates the next PR that grows the backlog.
+
+### S150: Stale branches stable at 90 (27th flag, MEDIUM — stable)
+**File:** Multiple repos
+**Issue:** 90 stale `claude/learnings-*` branches across repos (unchanged from run #76 after the prune in run #70). The auto-merger doesn't delete source branches after merge.
+**Suggestion:** Add post-merge branch deletion to auto-merger. Current count is stable post-prune.
+**Priority:** MEDIUM — 27th flag, but stable after prune.
+
+### S151: pm-interview-practice still missing CLAUDE.md (S130 — 23rd flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 23 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 23rd time flagged, infrequent changes.
+
+---
+
+## 2026-04-11 — Learning Agent Run #82
+
+### S201: Pre-push hook bug — new branches scan working tree, not just commits
+**File:** `agentGuidance/hooks/git-pre-push`
+**Issue:** For new branches (`REMOTE_SHA` is all zeros), the hook runs `git diff $LOCAL_SHA` which diffs the commit against the **working tree**, not against the merge base. This means unstaged/untracked files with sensitive identifiers block pushes even though the actual commits are clean. Discovered when pushing a clean deployment.md update — unstaged profile experience edits containing a private repo name triggered BLOCKED.
+**Suggestion:** Fix the new-branch range to diff against the merge base: `RANGE="$(git merge-base origin/main $LOCAL_SHA)..$LOCAL_SHA"` instead of `RANGE="$LOCAL_SHA"`. This ensures only actual commit content is scanned.
+**Priority:** HIGH — Causes false positives on every new branch push when working tree has unstaged changes. Workaround is `git stash` before push.
+
+### S202: autonomousDev PR backlog — 39 open PRs, 40 learnings branches (9th HIGH escalation)
+**File:** autonomousDev repo management
+**Issue:** 39 open PRs (up from 38), 40 learnings branches. Per S146: quiet runs skip PRs. This run has a real finding (S201 + deployment.md update) so a PR is warranted.
+**Suggestion:** Batch-merge or close stale learnings PRs older than 48h with no real learnings.
+**Priority:** HIGH — 9th escalation.
+
+### S203: Stale branches stable at 99 (28th flag, MEDIUM)
+**File:** Multiple repos
+**Issue:** 99 stale `claude/*` branches across repos (stable from last run). autonomousDev alone has 40.
+**Suggestion:** Add post-merge branch deletion to auto-merger.
+**Priority:** MEDIUM — stable.
+
+### S204: pm-interview-practice still missing CLAUDE.md (24th flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** 24th time flagged.
+**Suggestion:** Create CLAUDE.md.
+**Priority:** LOW.
