@@ -791,3 +791,25 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-11 — Run #72
+
+### S134: autonomousDev PR backlog — 33 open PRs, 34 learnings branches (S131 — ESCALATION)
+**File:** Multiple (autonomousDev repo)
+**Issue:** 33 open PRs on autonomousDev, 34 `claude/learnings-*` remote branches. Each hourly learnings run adds a PR modifying `suggestions.md` — guaranteed merge conflicts that auto-merger cannot resolve. The backlog is self-perpetuating.
+**Suggestion:** Squash-merge the oldest 15-20 PRs manually (resolve suggestions.md conflicts by concatenating). Consider: (a) learnings-pass appending to a date-stamped file instead of one monolithic suggestions.md, or (b) reducing frequency when no new commits are detected.
+**Priority:** HIGH — grows ~1 PR/hour, never self-resolves. 3rd escalation.
+
+### S135: Stale branch count — 93 branches (S132 — 26th flag, stabilizing)
+**File:** Multiple repos
+**Issue:** 93 stale remote `claude/*` branches across all repos. Down from 155 (run #71) — prune is working. autonomousDev (34 branches) is the main contributor.
+**Suggestion:** Cleaning autonomousDev PR backlog (S134) would drop this to ~60. Other repos are manageable.
+**Priority:** MEDIUM — trending down, autonomousDev is the bottleneck.
+
+### S136: pm-interview-practice still missing CLAUDE.md (S133 — 18th flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 18 times since S70. Repo has a live deployment and memory docs but no CLAUDE.md.
+**Suggestion:** Create CLAUDE.md with architecture, deployment, and key files.
+**Priority:** LOW — 18th flag, infrequent changes.
