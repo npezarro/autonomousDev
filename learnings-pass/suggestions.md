@@ -791,3 +791,25 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-11 — Run #71
+
+### S131: autonomousDev PR backlog — 30 open PRs, 33 learnings branches (ESCALATION)
+**File:** Multiple (autonomousDev repo)
+**Issue:** 30 open PRs on autonomousDev, 33 `claude/learnings-*` remote branches. All from hourly learnings runs, all modifying `suggestions.md`, guaranteed merge conflicts. Auto-merger cannot resolve these — they need manual merge or squash. Each hourly run adds another conflicting PR.
+**Suggestion:** Squash-merge the oldest 10-15 PRs manually (resolve suggestions.md conflicts by concatenating), then delete merged branches. Consider batching suggestions updates less frequently to reduce PR churn.
+**Priority:** HIGH — the backlog grows by ~1 PR/hour and will never self-resolve.
+
+### S132: Stale branch count — 155 branches (S129 — 25th flag, improving but rebounding)
+**File:** Multiple repos
+**Issue:** 155 stale remote branches across all repos. Down from peak of 492 after pruning, but rebounding from 90 (run #70) due to continued learnings-pass branch creation. autonomousDev alone has 33 learnings branches.
+**Suggestion:** Focus cleanup on autonomousDev (33 branches) and the PR backlog (S131). Other repos are cleaner after the prune sweep.
+**Priority:** MEDIUM — improving overall but autonomousDev is the bottleneck.
+
+### S133: pm-interview-practice still missing CLAUDE.md (S130 — 17th flag)
+**File:** `pm-interview-practice/CLAUDE.md` (does not exist)
+**Issue:** Flagged 17 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md.
+**Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
+**Priority:** LOW — 17th flag, infrequent changes.
