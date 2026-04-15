@@ -105,7 +105,9 @@ When you update a repo's CLAUDE.md or agentGuidance guidance file in Passes 1-3,
 3. Update the wiki page's `updated` frontmatter field
 4. Also check `consumers` in wiki page frontmatter: if you're updating repo X and a wiki page lists X as a consumer, review that wiki page for accuracy
 
-**Priority:** Lower than Passes 1-5. Only do this if you have capacity remaining.
+**Priority:** Run this pass when Passes 1-3 produce changes that touch files listed in `MANIFEST.md`. Skip only when no source files were modified.
+
+**Weekly health check:** Once per week (Sunday runs), also run `bash {{REPOS_ROOT}}/knowledgeBase/scripts/weekly-review.sh` and address any issues found (stale pages, missing MANIFEST entries, missing backlinks).
 
 ## Where to Stage Changes
 
