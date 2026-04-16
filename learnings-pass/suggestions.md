@@ -791,3 +791,19 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-16 — Learning Agent Run #160
+
+### S131: Auto-merger duplicate PR volume — 88 PRs in 48h for ~15 unique tasks
+**File:** `claude-auto-merger/server-logic.js`, `autonomousDev/run.sh`
+**Issue:** 88 PRs created across 11 repos in 48 hours, but only ~15-20 represent unique tasks. One repo alone had 29 PRs. The TOCTOU race documented in S66 creates 3-7 duplicate PRs per push event. Combined with autonomousDev's stateless task selection (no programmatic dedup — relies only on prompt instruction "don't repeat work"), this wastes GitHub API calls and clutters PR history.
+**Suggestion:** Two-pronged fix: (1) auto-merger: add BranchLock-style mutex around the pulls.list→pulls.create sequence to prevent duplicate PRs from concurrent webhooks. (2) autonomousDev run.sh: before spawning Claude, inject `gh pr list --state merged --limit 20 --json title` for the selected repo so the agent can see recently completed work programmatically, not just via advisory text.
+**Priority:** MEDIUM — cosmetic waste (all PRs merge fine) but 4-5x duplication rate is significant.
+
+### S132: suggestions.md repetition — cap re-flags at 3 then archive
+**File:** `autonomousDev/learnings-pass/suggestions.md`
+**Issue:** S60→S128 (PAT scope) flagged 22 times. S37→S129 (stale branches) flagged 23 times. S70→S130 (pm-interview-practice CLAUDE.md) flagged 16 times. These repeat entries consume ~40% of the file and add zero new information after the first 2-3 flags. The learning agent spends tokens re-generating the same suggestion each run.
+**Suggestion:** Add a rule to the learnings-pass prompt: after flagging an issue 3 times without resolution, mark it as "user-acknowledged, archived" and stop re-flagging. Maintain an archived-suggestions section at the bottom of the file for reference. The learning agent should check for existing suggestion IDs before creating a new flag.
+**Priority:** LOW — self-improvement, reduces noise in this file and saves tokens on repeat runs.
