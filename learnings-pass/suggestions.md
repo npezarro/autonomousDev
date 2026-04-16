@@ -786,8 +786,30 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Suggestion:** Add post-merge branch deletion to auto-merger. Run periodic cleanup for branches whose content is already on main.
 **Priority:** HIGH — 23rd time flagged.
 
-### S130: pm-interview-practice still missing CLAUDE.md (S127 — 16th flag)
+### S130: pm-interview-practice still missing CLAUDE.md (S127 — 17th flag)
 **File:** `pm-interview-practice/CLAUDE.md` (does not exist)
-**Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
+**Issue:** Flagged 17 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
-**Priority:** LOW — 16th time flagged, infrequent changes.
+**Priority:** LOW — 17th time flagged, infrequent changes.
+
+---
+
+## 2026-04-16 — Run #159
+
+### S131: learnings-pass/prompt.md still references `auto-dev/` (S48 incomplete fix)
+**File:** `autonomousDev/learnings-pass/prompt.md` (lines 78-80)
+**Issue:** S48 (run #20) fixed the stale `auto-dev` name in `agentGuidance/guidance/learning-agent.md` but the same stale name persists in the learnings-pass prompt template. Lines 78-80 reference `{{REPOS_ROOT}}/auto-dev/run.sh`, `auto-dev/fix-checker/`, and `auto-dev/learnings-pass/prompt.md` — the actual repo is `autonomousDev`. At runtime, `run.sh` resolves these correctly, so this is cosmetic but confusing when reading the template directly.
+**Suggestion:** Replace `auto-dev` with `autonomousDev` on lines 78-80.
+**Priority:** LOW — functional at runtime, confusing in source.
+
+### S132: PAT scope blocking — 294+ stale branches (S128 — 23rd flag, CRITICAL)
+**File:** Multiple repos
+**Issue:** Fine-grained PAT still doesn't cover all repos. 294+ branches unmerged. No progress since first flagged in S60.
+**Suggestion:** Switch to classic PAT with full repo scope, or expand fine-grained PAT.
+**Priority:** CRITICAL — 23rd time flagged.
+
+### S133: Stale branch accumulation (S129 — 24th flag, HIGH)
+**File:** Multiple repos
+**Issue:** Auto-merger never deletes source branches post-merge. PAT-blocked branches accumulate.
+**Suggestion:** Add post-merge branch deletion to auto-merger.
+**Priority:** HIGH — 24th time flagged.
