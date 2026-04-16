@@ -791,3 +791,14 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+
+---
+
+## 2026-04-16 — Learning Agent Run #164
+
+### S133: Auto-merger test gate changes failure mode for autonomousDev
+**File:** `autonomousDev/run.sh` prompt context, `agentGuidance/guidance/testing.md`
+**Issue:** The auto-merger now runs `npm test` before merging (commit a7540df). Previously, autonomousDev PRs with broken tests would auto-merge and the failure would only surface when someone ran tests locally. Now, test failures block the merge and post a Discord notification + PR comment. This is net positive but has an implication: autonomousDev agents should prioritize test correctness even more, since test failures are now visible in Discord rather than silent. The testing.md guidance doesn't mention the merge-time test gate.
+**Suggestion:** Add a note to `testing.md` under the existing "Tests Must Pass" section: "Auto-merger runs tests before merging — PRs with failing tests will be rejected with a Discord notification. Fix test failures in-branch before pushing, not after merge."
+**Priority:** LOW — informational, the gate itself already enforces correctness.
