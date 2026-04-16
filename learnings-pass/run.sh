@@ -223,27 +223,41 @@ if [ -d "$GUIDANCE_DIR/guidance" ]; then
 fi
 
 # ── Scan memory files for memory-only learnings ─────────────────────
+# Scan ALL project memory paths, not just one hardcoded path (fixes S36)
 
-MEMORY_DIR="$HOME/.claude/projects/-mnt-c-Users-user/memory"
 MEMORY_SCAN=""
-if [ -d "$MEMORY_DIR" ]; then
-  MEMORY_SCAN=$(find "$MEMORY_DIR" -name "*.md" ! -name "MEMORY.md" -newer "$MEMORY_DIR/MEMORY.md" -mtime -7 2>/dev/null | while read f; do
-    echo "### $(basename "$f")"
+MEMORY_DIRS=$(find "$HOME/.claude/projects" -maxdepth 2 -type d -name "memory" 2>/dev/null)
+
+if [ -n "$MEMORY_DIRS" ]; then
+  # First pass: files newer than their MEMORY.md index (recently changed)
+  MEMORY_SCAN=$(echo "$MEMORY_DIRS" | while read mem_dir; do
+    if [ -f "$mem_dir/MEMORY.md" ]; then
+      find "$mem_dir" -name "*.md" ! -name "MEMORY.md" -newer "$mem_dir/MEMORY.md" -mtime -7 2>/dev/null
+    else
+      find "$mem_dir" -name "*.md" ! -name "MEMORY.md" -mtime -7 2>/dev/null
+    fi
+  done | while read f; do
+    proj_path=$(echo "$f" | sed "s|.*/.claude/projects/||" | cut -d/ -f1)
+    echo "### $(basename "$f") [${proj_path}]"
     head -20 "$f"
     echo ""
   done 2>/dev/null || echo "")
 
-  # If no files newer than MEMORY.md, scan all recent files
+  # If no files newer than MEMORY.md, scan all recent files across all paths
   if [ -z "$MEMORY_SCAN" ]; then
-    MEMORY_SCAN=$(find "$MEMORY_DIR" -name "*.md" ! -name "MEMORY.md" -mtime -7 2>/dev/null | while read f; do
-      echo "### $(basename "$f")"
+    MEMORY_SCAN=$(echo "$MEMORY_DIRS" | while read mem_dir; do
+      find "$mem_dir" -name "*.md" ! -name "MEMORY.md" -mtime -7 2>/dev/null
+    done | while read f; do
+      proj_path=$(echo "$f" | sed "s|.*/.claude/projects/||" | cut -d/ -f1)
+      echo "### $(basename "$f") [${proj_path}]"
       head -20 "$f"
       echo ""
     done 2>/dev/null || echo "")
   fi
 
-  MEMORY_COUNT=$(echo "$MEMORY_SCAN" | grep -c "^###" || echo 0)
-  log "Scanned $MEMORY_COUNT memory files from last 7 days"
+  MEMORY_COUNT=$(echo "$MEMORY_SCAN" | grep -c "^###" || true)
+  MEMORY_PATH_COUNT=$(echo "$MEMORY_DIRS" | wc -l | tr -d ' ')
+  log "Scanned $MEMORY_COUNT memory files across $MEMORY_PATH_COUNT project paths (last 7 days)"
 fi
 
 # ── Collect recent git activity (last 24h across all repos) ──────────
