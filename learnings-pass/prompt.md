@@ -93,7 +93,17 @@ Stage suggestions as comments in a `learnings-pass/suggestions.md` file (append-
 
 If any recent work demonstrated patterns relevant to agent profiles (security findings, architectural decisions, testing strategies), append an experience entry to the appropriate `agentGuidance/profiles/<agent>/experience.md`.
 
-### Pass 6: Wiki Cross-Reference Check
+### Pass 6: ESSENTIAL.md Relevance Check
+
+Review `{{REPOS_ROOT}}/agentGuidance/guidance/ESSENTIAL.md` (the auto-loaded top-10 most-violated rules). Check whether the rules still match current failure patterns:
+
+1. Read the drift warning log at `~/.claude-drift-log/warnings.log` (if it exists) to see which rules are triggering
+2. Review recent corrections from Passes 2-3 — are any of them NOT covered by ESSENTIAL.md?
+3. Are any ESSENTIAL.md rules no longer relevant (the failure pattern was resolved)?
+
+If you find that a rule should be added, removed, or updated, stage an edit to ESSENTIAL.md on the learnings branch. Append-only for additions; for removals, leave a comment in `suggestions.md` explaining why. The goal is keeping ESSENTIAL.md at the 10 highest-impact rules at all times.
+
+### Pass 7: Wiki Cross-Reference Check
 
 When you update a repo's CLAUDE.md or agentGuidance guidance file in Passes 1-3, check if any knowledgeBase wiki pages reference that file or repo.
 
@@ -105,7 +115,7 @@ When you update a repo's CLAUDE.md or agentGuidance guidance file in Passes 1-3,
 3. Update the wiki page's `updated` frontmatter field
 4. Also check `consumers` in wiki page frontmatter: if you're updating repo X and a wiki page lists X as a consumer, review that wiki page for accuracy
 
-**Priority:** Run this pass when Passes 1-3 produce changes that touch files listed in `MANIFEST.md`. Skip only when no source files were modified.
+**Priority:** Run this pass when Passes 1-3 produce changes that touch files listed in `MANIFEST.md`. Skip only when no source files were modified. Also run Pass 6 (ESSENTIAL.md check) on every run.
 
 **Weekly health check:** Once per week (Sunday runs), also run `bash {{REPOS_ROOT}}/knowledgeBase/scripts/weekly-review.sh` and address any issues found (stale pages, missing MANIFEST entries, missing backlinks).
 
