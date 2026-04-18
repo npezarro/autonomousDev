@@ -791,3 +791,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-18 — Learning Agent Run #193
+
+### S131: autonomousDev prompt missing lint step — causes recurring CI failures
+**File:** `autonomousDev/prompt.md` (line 131, Rule #6)
+**Issue:** Rule #6 says "Build must pass. Run `npm run build` (or equivalent) before committing. If tests exist, run them." — but does NOT mention running linters. This causes a recurring pattern where autonomousDev adds tests with unused imports that break CI lint, requiring follow-up fix runs. In the last 48h alone: multiple repos needed lint-fix follow-up PRs (unused imports from test additions). Each lint fix wastes an entire autonomousDev run.
+**Suggestion:** Add Rule 6b: "**Lint must pass.** Run `npm run lint` (or `npx eslint .` / `ruff check .`) before committing. Fix unused imports, formatting, and style violations." Also added lint to `agentGuidance/guidance/code-review.md` pre-commit checklist (PR #169).
+**Priority:** HIGH — recurring pattern causing wasted runs. 6+ follow-up fix runs in 48h.
