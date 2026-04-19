@@ -791,3 +791,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Flagged 16 times since S70. Repo has a live deployment, deep closeout posted, and memory documentation but no CLAUDE.md for agent context.
 **Suggestion:** Create CLAUDE.md with architecture (Express+WS port 3456, Claude CLI interviewer, browser TTS/STT), deployment (SSH tunnel), key files.
 **Priority:** LOW — 16th time flagged, infrequent changes.
+
+---
+
+## 2026-04-19 — Learning Agent Run #210
+
+### S132: Crash-fix runs should not remove auth framework configuration
+**File:** `autonomousDev/run.sh` prompt / `agentGuidance/guidance/code-review.md`
+**Issue:** Crash-fix run #134 on finance-tracker removed `basePath` and `redirectProxyUrl` from NextAuth config in auth.ts because they appeared unused. This broke subpath OAuth deployment, requiring a manual restore (commit 60db078). Auth framework properties like `basePath`, `redirectProxyUrl`, and provider params are load-bearing for production even when they look like dead code.
+**Suggestion:** Add a rule to the autonomousDev crash-fix prompt: "When fixing crashes, do not remove configuration properties from auth framework files (NextAuth, Auth.js, Passport). These properties (basePath, redirectProxyUrl, authorization.params, token.params) are required for production proxy/subpath deployments even if they appear unused in local context." Already added to agentGuidance code-review.md (PR #172).
+**Priority:** HIGH — caused production OAuth breakage.
