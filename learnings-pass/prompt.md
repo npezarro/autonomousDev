@@ -172,6 +172,21 @@ PR_FOR_REVIEW:
   URL: <full PR URL>
 ```
 
+### Activity Summary (REQUIRED — include on every run)
+
+After the structured output above, include an `ACTIVITY_OBSERVED:` block. This is a narrative summary of everything you observed in the input data, even if no guidance changes were needed. It helps the user verify the learning agent is actually reviewing all activity.
+
+```
+ACTIVITY_OBSERVED:
+## Interactions Observed
+<For each repo/source with activity, briefly describe what happened — commits, PRs, corrections, journal entries, cli-interactions. Group by repo or source.>
+
+## Conclusions
+<Your assessment: What's going well? Any patterns emerging? Anything that looks like it needs attention even if it didn't trigger a guidance update? Any recurring quiet runs that suggest the input sources might be missing activity?>
+```
+
+**Important:** Even on quiet runs with no guidance updates, ALWAYS include the ACTIVITY_OBSERVED block. If there truly is zero activity across all sources, say so explicitly and note which sources were checked. This transparency helps the user trust that the agent is actually reviewing everything.
+
 ## Session Context
 
 **Current date:** {{DATE}}

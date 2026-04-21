@@ -374,9 +374,62 @@ post_to_discord() {
   msg="${msg:0:1990}"
   local payload
   payload=$(jq -n --arg content "$msg" --arg user "$username" '{"username": $user, "content": $content}')
-  curl -s -X POST "$webhook" \
+  local response
+  response=$(curl -s -X POST "${webhook}?wait=true" \
     -H "Content-Type: application/json" \
-    -d "$payload" > /dev/null 2>&1 || true
+    -d "$payload" 2>/dev/null || echo "")
+  # Return message ID for threading
+  echo "$response" | jq -r '.id // empty' 2>/dev/null || echo ""
+}
+
+LEARNINGS_CHANNEL_ID="1490474039674798282"
+
+post_thread_reply() {
+  local msg_id="$1" detail="$2"
+  [ -z "$msg_id" ] && return 1
+
+  local bot_token=""
+  if [ -f "$HOME/.cache/discord-bot-token" ]; then
+    bot_token=$(cat "$HOME/.cache/discord-bot-token" 2>/dev/null || echo "")
+  fi
+  if [ -z "$bot_token" ]; then
+    log "WARN: No bot token for threading, skipping thread"
+    return 1
+  fi
+
+  # Create thread from message
+  local thread_name="Run #$RUN_NUMBER — Activity Summary"
+  local thread_response
+  thread_response=$(curl -s -X POST \
+    "https://discord.com/api/v10/channels/${LEARNINGS_CHANNEL_ID}/messages/$msg_id/threads" \
+    -H "Authorization: Bot $bot_token" \
+    -H "Content-Type: application/json" \
+    -d "$(jq -n --arg name "$thread_name" '{"name": $name, "auto_archive_duration": 1440}')" \
+    2>/dev/null || echo "")
+
+  local thread_id
+  thread_id=$(echo "$thread_response" | jq -r '.id // empty' 2>/dev/null || echo "")
+
+  if [ -z "$thread_id" ]; then
+    log "WARN: Failed to create thread for activity summary"
+    return 1
+  fi
+
+  # Post detail in chunks (2000 char Discord limit)
+  while [ -n "$detail" ]; do
+    local chunk="${detail:0:1990}"
+    detail="${detail:1990}"
+
+    curl -s -X POST \
+      "https://discord.com/api/v10/channels/$thread_id/messages" \
+      -H "Authorization: Bot $bot_token" \
+      -H "Content-Type: application/json" \
+      -d "$(jq -n --arg content "$chunk" '{"content": $content}')" \
+      >/dev/null 2>&1 || true
+
+    [ -n "$detail" ] && sleep 1
+  done
+  log "Posted activity summary to thread (thread_id: $thread_id)"
 }
 
 GUIDANCE_UPDATED=$(echo "$RESULT" | grep -oP 'GUIDANCE_UPDATED:\s*\K\S+' | head -1 || echo "unknown")
@@ -384,28 +437,39 @@ CORRECTIONS_FOUND=$(echo "$RESULT" | grep -oP 'CORRECTIONS_FOUND:\s*\K\S+' | hea
 MEMORY_GAPS=$(echo "$RESULT" | grep -oP 'MEMORY_GAPS:\s*\K\S+' | head -1 || echo "0")
 SUGGESTIONS=$(echo "$RESULT" | grep -oP 'SUGGESTIONS:\s*\K\S+' | head -1 || echo "0")
 
+# Extract activity summary (everything after ACTIVITY_OBSERVED:)
+ACTIVITY_SUMMARY=$(echo "$RESULT" | sed -n '/^ACTIVITY_OBSERVED:/,//p' | tail -n +2 | head -c 3000)
+
 # Determine which webhook to use (prefer #learnings, fall back to #autonomous-dev)
 POST_WEBHOOK="${LEARNINGS_WEBHOOK:-$AUTONOMOUS_DEV_WEBHOOK}"
 
-if [ "$GUIDANCE_UPDATED" = "no" ] || [ "$GUIDANCE_UPDATED" = "none" ]; then
-  # Only heartbeat every 12 runs (every 12 hours at hourly cadence)
-  if (( RUN_NUMBER % 12 == 0 )); then
-    post_to_discord "$POST_WEBHOOK" "📚 **Learning Agent heartbeat** — run #$RUN_NUMBER, no gaps found (cost: $COST)"
-  fi
-  log "No guidance updates — no Discord post"
-elif [ $EXIT_CODE -eq 0 ]; then
+MSG_ID=""
+if [ $EXIT_CODE -ne 0 ]; then
+  MSG_ID=$(post_to_discord "$POST_WEBHOOK" "⚠️ **Learning Agent #$RUN_NUMBER FAILED** (exit: $EXIT_CODE, cost: $COST)
+
+Check logs at ~/repos/auto-dev/learnings-pass/logs/")
+elif [ "$GUIDANCE_UPDATED" = "no" ] || [ "$GUIDANCE_UPDATED" = "none" ]; then
+  # Always post now (not just heartbeat), but keep quiet runs concise
+  MSG_ID=$(post_to_discord "$POST_WEBHOOK" "📚 **Learning Agent #$RUN_NUMBER** — no gaps found (cost: $COST)")
+  log "No guidance updates — posted summary"
+else
   SUMMARY="📚 **Learning Agent #$RUN_NUMBER** (cost: $COST)"
   [ "$CORRECTIONS_FOUND" != "0" ] && SUMMARY="$SUMMARY | ⚠️ $CORRECTIONS_FOUND uncaptured corrections"
   [ "$MEMORY_GAPS" != "0" ] && SUMMARY="$SUMMARY | 🔄 $MEMORY_GAPS memory-only learnings migrated"
   [ "$SUGGESTIONS" != "0" ] && SUMMARY="$SUMMARY | 💡 $SUGGESTIONS suggestions"
 
-  post_to_discord "$POST_WEBHOOK" "$SUMMARY
+  MSG_ID=$(post_to_discord "$POST_WEBHOOK" "$SUMMARY
 
-${RESULT:0:1600}"
-else
-  post_to_discord "$POST_WEBHOOK" "⚠️ **Learning Agent #$RUN_NUMBER FAILED** (exit: $EXIT_CODE, cost: $COST)
+${RESULT:0:1600}")
+fi
 
-Check logs at ~/repos/auto-dev/learnings-pass/logs/"
+# Post activity summary as threaded reply
+if [ -n "$MSG_ID" ] && [ -n "$ACTIVITY_SUMMARY" ]; then
+  post_thread_reply "$MSG_ID" "$ACTIVITY_SUMMARY" || {
+    log "WARN: Threading failed, posting activity summary as follow-up"
+    post_to_discord "$POST_WEBHOOK" "📋 **Run #$RUN_NUMBER Activity Summary:**
+${ACTIVITY_SUMMARY:0:1800}"
+  }
 fi
 
 # ── Post PR review requests to #autonomous-dev-merges ──────────────
