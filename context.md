@@ -1,7 +1,7 @@
 # context.md
 
 ## Last Updated
-2026-04-07 — Priority rebalance: UX/features over tests, proposal mode for budget conservation
+2026-04-21 — Learning agent now posts threaded activity summaries on every run
 
 ## Current State
 - **auto-dev** is the autonomous agent runner, executing cron-based jobs on the GCP VM
@@ -19,18 +19,21 @@
 - Decision rationale: overnight runs were burning ~20% of 7d budget on tests/a11y/lint; user wants UX/feature advancement
 
 ### Learning Agent
-- Upgraded 2026-04-05 from daily single-pass to hourly 5-pass
+- Upgraded 2026-04-05 from daily single-pass to hourly 7-pass
 - All learning agent changes go on branches with PRs for review
-- Posts to #learnings Discord channel
+- Posts to #learnings Discord channel on EVERY run (not just when changes found)
+- Threaded activity summary on each post: narrative of all observed interactions + conclusions
+- `ACTIVITY_OBSERVED` block required in prompt output even on quiet runs
 
 ## Open Work
+- **VM deploy needed** — Pull latest on VM to pick up activity summary changes
+- **Monitor thread creation** — Verify bot token + channel perms work consistently on VM
+- **PR backlog** — 29 open PRs in Discord bot repo flagged by activity summary, needs triage
 - **Monitor priority rebalance** — Verify 50/50 feature/maintenance split produces good mix
 - **Proposal mode untested** — Will activate organically when 7d usage crosses 50%
-- **Feature ideas refresh** — Per-repo `context/*-features.md` files written under old regime, may need UX-oriented ideas
 - **S6: Branch name collision:** Runner could fail if previous learnings branch isn't cleaned up
-- **Usage gate validation:** Parsing works but no fallback if output format changes
 
-Full session closeout: `privateContext/deliverables/closeouts/2026-04-07-ad-priority-rebalance.md`
+Full session closeout: `privateContext/deliverables/closeouts/2026-04-21-learning-agent-activity-summary.md`
 
 ## Environment Notes
 - **Deploy target:** GCP VM (see privateContext for details)
