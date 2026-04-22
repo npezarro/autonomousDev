@@ -142,7 +142,7 @@ If changes span multiple repos (e.g., agentGuidance + a project repo), create se
 7. **One PR per repo per run.** Bundle all updates for a single repo into one commit/PR.
 8. **Corrections are highest priority.** If a user correction isn't reflected in the rules, that's the most important thing to capture. These prevent repeated mistakes.
 9. **Suggestions are separate from edits.** Prompt/instruction improvement ideas go in `suggestions.md`, not as direct edits to other agent prompts.
-10. **Post summary to #learnings.** Always end with a Discord post summarizing what you found and what PRs you created.
+10. **Do NOT post to Discord yourself.** The runner script handles all Discord posting after you finish. Just output the structured format below.
 
 ## Private Context
 

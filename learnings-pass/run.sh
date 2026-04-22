@@ -339,7 +339,7 @@ fi
 
 RESULT=$(grep -m1 '"type":"result"' "$RUN_LOG" 2>/dev/null \
   | jq -r '.result // "No result extracted"' 2>/dev/null \
-  | head -c 2000 \
+  | head -c 10000 \
   || echo "No result extracted")
 
 COST=$(grep '"type":"result"' "$RUN_LOG" 2>/dev/null \
