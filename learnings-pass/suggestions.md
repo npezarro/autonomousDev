@@ -811,3 +811,19 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** 13 repos now have a standard `.github/workflows/test.yml` CI workflow (deployed during the Test Coverage Audit session). When autonomousDev adds first tests to a repo that has no CI workflow, the tests only run locally — there's no CI gate to catch regressions on future PRs.
 **Suggestion:** Add a rule: "If the repo has no `.github/workflows/test.yml` and you're adding tests, also create the standard CI workflow." The template is documented in `agentGuidance/guidance/testing.md` § CI Test Workflow.
 **Priority:** MEDIUM — Prevents test coverage from being silently ignored on future PRs. Currently 13/30+ repos have CI; the gap will grow as autonomousDev adds tests to more repos.
+
+---
+
+## 2026-04-22 — Learning Agent Run #279
+
+### S131: agentGuidance auth-basepath.md has 3 conflicting open PRs (NEW)
+**File:** `agentGuidance/guidance/auth-basepath.md`
+**Issue:** PRs #180, #181, and #182 all add rules #5-6 to the same section of auth-basepath.md. They will conflict when merged sequentially. Rule numbering needs consolidation after merge.
+**Suggestion:** Merge in order (oldest first), then consolidate rule numbering in a follow-up commit. Consider batching related auth learnings into single PRs instead of per-run PRs.
+**Priority:** MEDIUM — blocks merging 3 PRs cleanly.
+
+### S132: 10 open agentGuidance PRs — merge backlog growing (S129 — 24th flag, CRITICAL)
+**File:** GitHub PAT configuration (infrastructure) + auto-merger
+**Issue:** 10 open PRs on agentGuidance (runs #210 through #278). Combined with the PAT scope issue from S128, branches accumulate indefinitely.
+**Suggestion:** Batch-merge the 10 open PRs or switch to a classic PAT. The learning agent creates 1 PR per run per repo, creating linear accumulation when merging is slow.
+**Priority:** CRITICAL — 24th escalation of underlying PAT scope issue.
