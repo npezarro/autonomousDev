@@ -794,7 +794,6 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 
 ---
 
-<<<<<<< HEAD
 ## 2026-04-19 — Learning Agent Run #210
 
 ### S132: Crash-fix runs should not remove auth framework configuration
@@ -844,3 +843,19 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** The heading says "Your Task — Five Review Passes" but the document defines 7 passes (Pass 1 through Pass 7). The actual prompt injected to the learning agent at runtime also says "Five Review Passes" with 6 passes. These should be consistent.
 **Suggestion:** Update the heading to match the actual number of passes defined in the file.
 **Priority:** LOW — cosmetic inconsistency.
+
+---
+
+## 2026-04-22 — Learning Agent Run #281
+
+### S135: deployment.md pre-deploy checklist should cross-reference port checking
+**File:** `agentGuidance/guidance/deployment.md`
+**Issue:** The pre-deploy checklist (7 items) does not mention checking port availability on the target server. `process-hygiene.md` has a "Port and Process Conflicts" section with `ss -tlnp` guidance, but agents following only the deployment checklist would miss it. student-transcript hit a port conflict (3007→3009, commit e3bbd8d) that this cross-reference would have caught.
+**Suggestion:** Add item 8 to the pre-deploy checklist: "Port available on target: run `ss -tlnp | grep <port>` on the deploy target (see process-hygiene.md § Port and Process Conflicts)."
+**Priority:** LOW — the rule exists in process-hygiene.md, this is just a cross-reference.
+
+### S136: student-transcript CLAUDE.md (PR #2) has stale timeout values
+**File:** `student-transcript/CLAUDE.md` (on branch `claude/learnings-278`)
+**Issue:** PR #2's CLAUDE.md documents AI edit timeouts as "90s timeout for SSH, 60s for local" but commit fafdf01 (after the PR was created) changed both to 10 minutes (600000ms). When the PR is reviewed/merged, the timeout documentation will be incorrect.
+**Suggestion:** Update the AI Edit Architecture section in the PR branch to reflect 10-minute timeouts for both paths.
+**Priority:** LOW — minor doc inaccuracy in an unmerged PR.
