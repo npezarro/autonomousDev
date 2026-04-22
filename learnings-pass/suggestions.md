@@ -794,6 +794,7 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 
 ---
 
+<<<<<<< HEAD
 ## 2026-04-19 — Learning Agent Run #210
 
 ### S132: Crash-fix runs should not remove auth framework configuration
@@ -827,3 +828,19 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** 10 open PRs on agentGuidance (runs #210 through #278). Combined with the PAT scope issue from S128, branches accumulate indefinitely.
 **Suggestion:** Batch-merge the 10 open PRs or switch to a classic PAT. The learning agent creates 1 PR per run per repo, creating linear accumulation when merging is slow.
 **Priority:** CRITICAL — 24th escalation of underlying PAT scope issue.
+
+---
+
+## 2026-04-22 — Learning Agent Run #280
+
+### S133: suggestions.md re-flagging bloat — cap recurring suggestions
+**File:** `autonomousDev/learnings-pass/prompt.md`
+**Issue:** Three recurring suggestions (PAT scope S60-S128, stale branches S37-S129, pm-interview CLAUDE.md S70-S130) have been re-flagged 16-23 times each, consuming ~400 lines of suggestions.md (over 50% of the file). Each re-flag adds 5-7 lines repeating the same information with only a branch count delta. This makes the file hard to scan for actual new suggestions.
+**Suggestion:** Add a rule to prompt.md: "Do not create a new suggestion entry for an issue already tracked in suggestions.md. Instead, reference the original suggestion number (e.g., 'S60 still open — branch count now 294'). Only create a new entry when there is material new information (a workaround was found, the scope changed significantly, or a new dimension of the problem emerged). One-line status updates are sufficient for known issues."
+**Priority:** MEDIUM — does not affect learning capture quality but makes the suggestion log nearly unusable for finding new insights.
+
+### S134: prompt.md pass count label mismatch
+**File:** `autonomousDev/learnings-pass/prompt.md`
+**Issue:** The heading says "Your Task — Five Review Passes" but the document defines 7 passes (Pass 1 through Pass 7). The actual prompt injected to the learning agent at runtime also says "Five Review Passes" with 6 passes. These should be consistent.
+**Suggestion:** Update the heading to match the actual number of passes defined in the file.
+**Priority:** LOW — cosmetic inconsistency.
