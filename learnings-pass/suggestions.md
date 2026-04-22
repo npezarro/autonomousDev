@@ -794,6 +794,7 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 
 ---
 
+<<<<<<< HEAD
 ## 2026-04-19 — Learning Agent Run #210
 
 ### S132: Crash-fix runs should not remove auth framework configuration
@@ -859,3 +860,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** PR #2's CLAUDE.md documents AI edit timeouts as "90s timeout for SSH, 60s for local" but commit fafdf01 (after the PR was created) changed both to 10 minutes (600000ms). When the PR is reviewed/merged, the timeout documentation will be incorrect.
 **Suggestion:** Update the AI Edit Architecture section in the PR branch to reflect 10-minute timeouts for both paths.
 **Priority:** LOW — minor doc inaccuracy in an unmerged PR.
+
+---
+
+## 2026-04-22 — Learning Agent Run #283
+
+### S137: Dirty profile files in agentGuidance block pushes (NEW)
+**File:** `agentGuidance/profiles/*/experience.md` (4 files)
+**Issue:** Four profile experience.md files (architect, debugger, reviewer, security) have uncommitted changes containing sensitive identifiers (domain names, task descriptions). These dirty files cause the pre-push hook to scan the full working tree and block pushes on `agentGuidance`, requiring `git stash` workaround every time.
+**Suggestion:** Either sanitize and commit these profile files, or revert them to clean state. The stash workaround is friction for every learning agent run that touches agentGuidance.
+**Priority:** MEDIUM — blocks every agentGuidance push until resolved.
