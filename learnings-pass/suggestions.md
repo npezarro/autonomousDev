@@ -870,3 +870,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Four profile experience.md files (architect, debugger, reviewer, security) have uncommitted changes containing sensitive identifiers (domain names, task descriptions). These dirty files cause the pre-push hook to scan the full working tree and block pushes on `agentGuidance`, requiring `git stash` workaround every time.
 **Suggestion:** Either sanitize and commit these profile files, or revert them to clean state. The stash workaround is friction for every learning agent run that touches agentGuidance.
 **Priority:** MEDIUM — blocks every agentGuidance push until resolved.
+
+---
+
+## 2026-04-23 — Learning Agent Run #298
+
+### S139: Fix-checker creates duplicate PRs for identical test fix (browser-agent)
+**File:** `autonomousDev/fix-checker/` config or deduplication logic
+**Issue:** Fix-checker ran 3 times on browser-agent for the same health test mismatch (PRs #25, #27, #28). All three contain the identical diff (`ok→status`, `tabs→connectedClients`). The auto-merger merged all three, creating 3 redundant merge commits. This wastes tokens and clutters git history.
+**Suggestion:** Before creating a fix PR, check if there's already an open PR on the same repo with a matching branch prefix (e.g., `claude/fix-*`). If one exists and targets the same test file, skip the run. Alternatively, check if the test already passes after a `git pull` (in case a prior fix was merged).
+**Priority:** LOW — the auto-merger handles dedup at merge time, but the redundant runs waste Claude tokens and create noise.
