@@ -870,3 +870,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Four profile experience.md files (architect, debugger, reviewer, security) have uncommitted changes containing sensitive identifiers (domain names, task descriptions). These dirty files cause the pre-push hook to scan the full working tree and block pushes on `agentGuidance`, requiring `git stash` workaround every time.
 **Suggestion:** Either sanitize and commit these profile files, or revert them to clean state. The stash workaround is friction for every learning agent run that touches agentGuidance.
 **Priority:** MEDIUM — blocks every agentGuidance push until resolved.
+
+---
+
+## 2026-04-23 — Learning Agent Run #301
+
+### S142: autonomousDev config.json missing 15+ active repos (NEW)
+**File:** `autonomousDev/config.json`
+**Issue:** At least 15 actively developed repos are missing from the config.json repo list, including url-vault, deal-scout, health-hub, finance-tracker, trading-agent, buying-assistant, browser-agent, claude-tray-notifier, and others. This means doc-sync never covers these repos, leading to CLAUDE.md drift when features are added (url-vault had 2 feature commits without CLAUDE.md updates). The learning agent catches these gaps, but doc-sync is the correct automated preventor.
+**Suggestion:** Audit config.json and add all actively developed repos that have a CLAUDE.md. Exclude meta-repos (agentGuidance, autonomousDev, privateContext, knowledgeBase) and archived/inactive repos intentionally.
+**Priority:** MEDIUM — doc-sync coverage gap causes recurring CLAUDE.md drift that the learning agent catches after the fact instead of preventing.
