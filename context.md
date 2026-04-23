@@ -1,14 +1,14 @@
 # context.md
 
 ## Last Updated
-2026-04-21 — Learning agent now posts threaded activity summaries on every run
+2026-04-22 — Fix-checker upgraded with two-tier fix strategy (immediate restore + root cause code fix)
 
 ## Current State
 - **auto-dev** is the autonomous agent runner, executing cron-based jobs on the GCP VM
 - Three active jobs:
   - `auto-dev/` (main pass): runs every 30min at :00/:30, usage gate 75%
   - `learnings-pass/`: runs hourly at :43, usage gate 90%
-  - `fix-checker/`: runs on its own schedule
+  - `fix-checker/`: runs every 10min, two-tier strategy (Tier 1: restart/rollback, Tier 2: root cause code fix)
 
 ### Priority System (updated 2026-04-07)
 - **Feature runs** now fire every 2nd run (was every 5th) — 50% of runs are feature-focused
@@ -26,14 +26,14 @@
 - `ACTIVITY_OBSERVED` block required in prompt output even on quiet runs
 
 ## Open Work
-- **VM deploy needed** — Pull latest on VM to pick up activity summary changes
-- **Monitor thread creation** — Verify bot token + channel perms work consistently on VM
+- **Monitor fix-checker Tier 2** — Watch #work-log for next runs to verify root cause fixes are attempted
+- **Fix-checker cost monitoring** — Tier 2 fixes increase per-run cost; watch 24h budget impact
 - **PR backlog** — 29 open PRs in Discord bot repo flagged by activity summary, needs triage
 - **Monitor priority rebalance** — Verify 50/50 feature/maintenance split produces good mix
 - **Proposal mode untested** — Will activate organically when 7d usage crosses 50%
 - **S6: Branch name collision:** Runner could fail if previous learnings branch isn't cleaned up
 
-Full session closeout: `privateContext/deliverables/closeouts/2026-04-21-learning-agent-activity-summary.md`
+Full session closeout: `privateContext/deliverables/closeouts/2026-04-22-fix-checker-two-tier-strategy.md`
 
 ## Environment Notes
 - **Deploy target:** GCP VM (see privateContext for details)
