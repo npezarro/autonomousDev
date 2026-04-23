@@ -801,3 +801,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Crash-fix run #134 on finance-tracker removed `basePath` and `redirectProxyUrl` from NextAuth config in auth.ts because they appeared unused. This broke subpath OAuth deployment, requiring a manual restore (commit 60db078). Auth framework properties like `basePath`, `redirectProxyUrl`, and provider params are load-bearing for production even when they look like dead code.
 **Suggestion:** Add a rule to the autonomousDev crash-fix prompt: "When fixing crashes, do not remove configuration properties from auth framework files (NextAuth, Auth.js, Passport). These properties (basePath, redirectProxyUrl, authorization.params, token.params) are required for production proxy/subpath deployments even if they appear unused in local context." Already added to agentGuidance code-review.md (PR #172).
 **Priority:** HIGH — caused production OAuth breakage.
+
+---
+
+## 2026-04-19 — Learning Agent Run #211
+
+### S133: Add CI test workflow when adding first tests to a repo
+**File:** `autonomousDev/prompt.md`
+**Issue:** 13 repos now have a standard `.github/workflows/test.yml` CI workflow (deployed during the Test Coverage Audit session). When autonomousDev adds first tests to a repo that has no CI workflow, the tests only run locally — there's no CI gate to catch regressions on future PRs.
+**Suggestion:** Add a rule: "If the repo has no `.github/workflows/test.yml` and you're adding tests, also create the standard CI workflow." The template is documented in `agentGuidance/guidance/testing.md` § CI Test Workflow.
+**Priority:** MEDIUM — Prevents test coverage from being silently ignored on future PRs. Currently 13/30+ repos have CI; the gap will grow as autonomousDev adds tests to more repos.
