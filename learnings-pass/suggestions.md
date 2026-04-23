@@ -870,3 +870,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Four profile experience.md files (architect, debugger, reviewer, security) have uncommitted changes containing sensitive identifiers (domain names, task descriptions). These dirty files cause the pre-push hook to scan the full working tree and block pushes on `agentGuidance`, requiring `git stash` workaround every time.
 **Suggestion:** Either sanitize and commit these profile files, or revert them to clean state. The stash workaround is friction for every learning agent run that touches agentGuidance.
 **Priority:** MEDIUM — blocks every agentGuidance push until resolved.
+
+---
+
+## 2026-04-23 — Learning Agent Run #300
+
+### S141: url-vault deployed without service registration
+**File:** `knowledgeBase/infra/vm-overview.md`, `scripts/disaster-recovery/inventory.md`
+**Issue:** url-vault was deployed to the VM (PM2 process `url-vault`, port 3200, Apache proxy at `/vault/`) but is not listed in vm-overview.md's PM2 process table, the disaster recovery inventory, or any service map. This is a concrete instance of the service registration rule added in run #299 (deployment.md: "When deploying a new service, update vm-overview.md, DR inventory, and service map"). The rule was added after the deployment happened, so this is a gap to close, not a rule violation.
+**Suggestion:** Add url-vault to (1) vm-overview.md PM2 process list with port 3200 and Apache proxy details, (2) disaster-recovery/inventory.md with backup requirements (file-based storage in `data/saves/`), and (3) any service map if one exists.
+**Priority:** MEDIUM — url-vault is online and serving traffic but invisible to monitoring, DR, and infrastructure documentation.
