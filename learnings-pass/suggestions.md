@@ -870,3 +870,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Four profile experience.md files (architect, debugger, reviewer, security) have uncommitted changes containing sensitive identifiers (domain names, task descriptions). These dirty files cause the pre-push hook to scan the full working tree and block pushes on `agentGuidance`, requiring `git stash` workaround every time.
 **Suggestion:** Either sanitize and commit these profile files, or revert them to clean state. The stash workaround is friction for every learning agent run that touches agentGuidance.
 **Priority:** MEDIUM — blocks every agentGuidance push until resolved.
+
+---
+
+## 2026-04-23 — Learning Agent Run #299
+
+### S140: New service registration rule missing from deployment.md
+**File:** `agentGuidance/guidance/deployment.md`
+**Issue:** When url-vault was deployed (2026-04-23), the knowledgeBase service map and disaster recovery inventory were not updated. The rule "update service map + DR inventory on new service" existed only in memory (`project_infra_reliability.md`) but not in deployment.md. This means agents following the deployment checklist would not know to register new services.
+**Suggestion:** Added in this run (learnings-299) — "New Service Registration" section in deployment.md requiring updates to service-map.md, inventory.md, and the repo's CLAUDE.md when deploying a new service.
+**Priority:** LOW — the rule is now added; this entry is for tracking.
