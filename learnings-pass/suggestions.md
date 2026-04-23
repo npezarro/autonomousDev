@@ -794,7 +794,6 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 
 ---
 
-<<<<<<< HEAD
 ## 2026-04-19 — Learning Agent Run #210
 
 ### S132: Crash-fix runs should not remove auth framework configuration
@@ -870,3 +869,12 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Four profile experience.md files (architect, debugger, reviewer, security) have uncommitted changes containing sensitive identifiers (domain names, task descriptions). These dirty files cause the pre-push hook to scan the full working tree and block pushes on `agentGuidance`, requiring `git stash` workaround every time.
 **Suggestion:** Either sanitize and commit these profile files, or revert them to clean state. The stash workaround is friction for every learning agent run that touches agentGuidance.
 **Priority:** MEDIUM — blocks every agentGuidance push until resolved.
+
+---
+
+## 2026-04-23 — Learning Agent Run #297
+
+### S138: Stray merge conflict marker committed to suggestions.md
+**File:** `autonomousDev/learnings-pass/suggestions.md` (line 797)
+**Issue:** A `<<<<<<< HEAD` conflict marker was committed to main, likely from an improperly resolved merge. No corresponding `=======` or `>>>>>>>` markers exist, so the content after the marker is valid. The marker itself is cosmetic noise but could confuse parsers or future merge operations.
+**Status:** Fixed in this run (removed the stray marker).
