@@ -33,6 +33,7 @@ declare -A PROCESS_TO_REPO=(
   [promptlibrary-staging]=promptlibrary
   [free-games]=freeGames
   [epic-claimer]=freeGames
+  [housing-scout]=deal-scout
 )
 
 REPO_NAME="${PROCESS_TO_REPO[$PROCESS_NAME]:-}"
