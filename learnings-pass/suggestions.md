@@ -870,3 +870,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Four profile experience.md files (architect, debugger, reviewer, security) have uncommitted changes containing sensitive identifiers (domain names, task descriptions). These dirty files cause the pre-push hook to scan the full working tree and block pushes on `agentGuidance`, requiring `git stash` workaround every time.
 **Suggestion:** Either sanitize and commit these profile files, or revert them to clean state. The stash workaround is friction for every learning agent run that touches agentGuidance.
 **Priority:** MEDIUM — blocks every agentGuidance push until resolved.
+
+---
+
+## 2026-04-24 — Learning Agent Run #310
+
+### S139: Auto-dev repeats fixes for issues already addressed on open branches (NEW)
+**File:** `autonomousDev/prompt.md` and/or `autonomousDev/run.sh`
+**Issue:** job-scraper truncation test failures were independently fixed 3 times in 24 hours (runs #144, #164, #169), creating 3 separate PRs (#39, #42, #44) for the same 3 failing tests. Each run checked out main (where tests still fail because no PR was merged yet), discovered the failures, and re-fixed them independently. The deduplication mechanism (completed-work.md + progress.log) doesn't cover in-flight PRs, and the PRIOR_CONTEXT window may be too small to include the earlier fix.
+**Suggestion:** Two complementary fixes: (1) Add to prompt.md: "Before fixing failing tests, run `gh pr list --state open --head 'claude/auto' --repo <repo>` to check for existing fix PRs. If an open PR already addresses the same test failures, skip and pick a different repo." (2) In run.sh: after selecting a repo, check for open `claude/auto-*` PRs on that repo and prefer repos with no pending PRs.
+**Priority:** MEDIUM — each duplicate fix wastes ~15 minutes of Claude time and creates PR noise. With 30-minute run intervals, the same failing test can be re-fixed 2-3 times before any PR is reviewed.
