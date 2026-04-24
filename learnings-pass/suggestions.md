@@ -870,3 +870,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Four profile experience.md files (architect, debugger, reviewer, security) have uncommitted changes containing sensitive identifiers (domain names, task descriptions). These dirty files cause the pre-push hook to scan the full working tree and block pushes on `agentGuidance`, requiring `git stash` workaround every time.
 **Suggestion:** Either sanitize and commit these profile files, or revert them to clean state. The stash workaround is friction for every learning agent run that touches agentGuidance.
 **Priority:** MEDIUM — blocks every agentGuidance push until resolved.
+
+---
+
+## 2026-04-24 — Learning Agent Run #303
+
+### S143: prompt.md and run.sh reference stale `auto-dev` path (NEW)
+**File:** `autonomousDev/learnings-pass/prompt.md` (lines 78-80), `autonomousDev/learnings-pass/run.sh` (line 450)
+**Issue:** Pass 4 instructions tell the learning agent to review `{{REPOS_ROOT}}/auto-dev/run.sh` and `{{REPOS_ROOT}}/auto-dev/fix-checker/`, but the actual directory is `autonomousDev`, not `auto-dev`. When `{{REPOS_ROOT}}` expands to `~/repos`, these paths resolve to `~/repos/auto-dev/` which does not exist. Line 450 of run.sh also references `auto-dev` in a Discord log message. The agent works around this by inferring the correct path, but the stale references could confuse less capable models or cause silent skips of Pass 4 file reviews.
+**Suggestion:** Replace `auto-dev` with `autonomousDev` in both files. Also fix the pass count heading ("Five Review Passes" vs 7 actual passes, ref S134).
+**Priority:** LOW — functional impact is minimal since the agent resolves paths independently, but it's misleading for anyone reading the source.
