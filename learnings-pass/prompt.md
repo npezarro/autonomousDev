@@ -28,7 +28,7 @@ You are a dedicated learning agent that reviews recent activity across all repos
 
 {{GIT_ACTIVITY}}
 
-## Your Task — Five Review Passes
+## Your Task — Seven Review Passes
 
 ### Pass 1: Uncaptured Learnings
 
@@ -75,9 +75,9 @@ If the correction ISN'T reflected in any rule set, stage an addition to the appr
 ### Pass 4: Prompt & Instruction Observation
 
 Review the prompts and instruction files for all agents and suggest improvements:
-- `{{REPOS_ROOT}}/auto-dev/run.sh` and its prompt context files
-- `{{REPOS_ROOT}}/auto-dev/fix-checker/` prompt and config
-- `{{REPOS_ROOT}}/auto-dev/learnings-pass/prompt.md` (self-reflection)
+- `{{REPOS_ROOT}}/autonomousDev/run.sh` and its prompt context files
+- `{{REPOS_ROOT}}/autonomousDev/fix-checker/` prompt and config
+- `{{REPOS_ROOT}}/autonomousDev/learnings-pass/prompt.md` (self-reflection)
 - `agentGuidance/agent.md` — is it still accurate? Are there stale rules?
 - Any repo's `CLAUDE.md` that was recently worked on
 

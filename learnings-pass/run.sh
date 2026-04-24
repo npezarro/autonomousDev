@@ -447,7 +447,7 @@ MSG_ID=""
 if [ $EXIT_CODE -ne 0 ]; then
   MSG_ID=$(post_to_discord "$POST_WEBHOOK" "⚠️ **Learning Agent #$RUN_NUMBER FAILED** (exit: $EXIT_CODE, cost: $COST)
 
-Check logs at ~/repos/auto-dev/learnings-pass/logs/")
+Check logs at ~/repos/autonomousDev/learnings-pass/logs/")
 elif [ "$GUIDANCE_UPDATED" = "no" ] || [ "$GUIDANCE_UPDATED" = "none" ]; then
   # Always post now (not just heartbeat), but keep quiet runs concise
   MSG_ID=$(post_to_discord "$POST_WEBHOOK" "📚 **Learning Agent #$RUN_NUMBER** — no gaps found (cost: $COST)")
