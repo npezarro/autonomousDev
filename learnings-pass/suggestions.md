@@ -794,7 +794,6 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 
 ---
 
-<<<<<<< HEAD
 ## 2026-04-19 — Learning Agent Run #210
 
 ### S132: Crash-fix runs should not remove auth framework configuration
@@ -870,3 +869,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Four profile experience.md files (architect, debugger, reviewer, security) have uncommitted changes containing sensitive identifiers (domain names, task descriptions). These dirty files cause the pre-push hook to scan the full working tree and block pushes on `agentGuidance`, requiring `git stash` workaround every time.
 **Suggestion:** Either sanitize and commit these profile files, or revert them to clean state. The stash workaround is friction for every learning agent run that touches agentGuidance.
 **Priority:** MEDIUM — blocks every agentGuidance push until resolved.
+
+---
+
+## 2026-04-24 — Learning Agent Run #304
+
+### S138: prompt.md Pass 4 references stale `auto-dev` paths
+**File:** `autonomousDev/learnings-pass/prompt.md` (lines 78-80)
+**Issue:** Pass 4 instructions reference `{{REPOS_ROOT}}/auto-dev/run.sh`, `{{REPOS_ROOT}}/auto-dev/fix-checker/`, and `{{REPOS_ROOT}}/auto-dev/learnings-pass/prompt.md`. The repo was renamed from `auto-dev` to `autonomousDev`. When `{{REPOS_ROOT}}` expands, these resolve to non-existent paths, so the learning agent can't find the files it's told to review.
+**Suggestion:** Update all three references from `auto-dev` to `autonomousDev`.
+**Priority:** LOW — the learning agent works around this because it's already running from inside autonomousDev, but the instructions are technically wrong.
