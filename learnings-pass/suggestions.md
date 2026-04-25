@@ -879,3 +879,25 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Pass 4 instructions reference `{{REPOS_ROOT}}/auto-dev/run.sh`, `{{REPOS_ROOT}}/auto-dev/fix-checker/`, and `{{REPOS_ROOT}}/auto-dev/learnings-pass/prompt.md`. The repo was renamed from `auto-dev` to `autonomousDev`. When `{{REPOS_ROOT}}` expands, these resolve to non-existent paths, so the learning agent can't find the files it's told to review.
 **Suggestion:** Update all three references from `auto-dev` to `autonomousDev`.
 **Priority:** LOW — the learning agent works around this because it's already running from inside autonomousDev, but the instructions are technically wrong.
+**Status:** RESOLVED — PR #135 merged 2026-04-25, fixed all 3 prompt.md references. One residual stale path remains in run.sh:438 (see S140).
+
+---
+
+## 2026-04-24 — Learning Agent Run #310
+
+### S139: Auto-dev repeats fixes for issues already addressed on open branches (NEW)
+**File:** `autonomousDev/prompt.md` and/or `autonomousDev/run.sh`
+**Issue:** job-scraper truncation test failures were independently fixed 3 times in 24 hours (runs #144, #164, #169), creating 3 separate PRs (#39, #42, #44) for the same 3 failing tests. Each run checked out main (where tests still fail because no PR was merged yet), discovered the failures, and re-fixed them independently. The deduplication mechanism (completed-work.md + progress.log) doesn't cover in-flight PRs, and the PRIOR_CONTEXT window may be too small to include the earlier fix.
+**Suggestion:** Two complementary fixes: (1) Add to prompt.md: "Before fixing failing tests, run `gh pr list --state open --head 'claude/auto' --repo <repo>` to check for existing fix PRs. If an open PR already addresses the same test failures, skip and pick a different repo." (2) In run.sh: after selecting a repo, check for open `claude/auto-*` PRs on that repo and prefer repos with no pending PRs.
+**Priority:** MEDIUM — each duplicate fix wastes ~15 minutes of Claude time and creates PR noise. With 30-minute run intervals, the same failing test can be re-fixed 2-3 times before any PR is reviewed.
+**Source:** Recovered from stranded branch `claude/learnings-310` (no PR was created).
+
+---
+
+## 2026-04-25 — Learning Agent Run #319
+
+### S140: run.sh Discord error message references stale `auto-dev` path (NEW)
+**File:** `autonomousDev/run.sh` (line 438)
+**Issue:** The Discord failure notification at line 438 says `Check logs at ~/repos/auto-dev/logs/` but the repo was renamed to `autonomousDev`. PR #135 (S138 fix) updated prompt.md references but missed this one in run.sh. When a run fails, the Discord message directs maintainers to a non-existent directory.
+**Suggestion:** Change `~/repos/auto-dev/logs/` to `~/repos/autonomousDev/logs/` on line 438 of run.sh.
+**Priority:** LOW — only affects failed-run Discord messages, but trivial to fix.
