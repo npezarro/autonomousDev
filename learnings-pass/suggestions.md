@@ -879,3 +879,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Pass 4 instructions reference `{{REPOS_ROOT}}/auto-dev/run.sh`, `{{REPOS_ROOT}}/auto-dev/fix-checker/`, and `{{REPOS_ROOT}}/auto-dev/learnings-pass/prompt.md`. The repo was renamed from `auto-dev` to `autonomousDev`. When `{{REPOS_ROOT}}` expands, these resolve to non-existent paths, so the learning agent can't find the files it's told to review.
 **Suggestion:** Update all three references from `auto-dev` to `autonomousDev`.
 **Priority:** LOW — the learning agent works around this because it's already running from inside autonomousDev, but the instructions are technically wrong.
+
+---
+
+## 2026-04-27 — Learning Agent Run #363
+
+### S147: trading-agent CLAUDE.md missing data source provider migration (FMP → yfinance/Finnhub/FINRA)
+**File:** `trading-agent/CLAUDE.md`
+**Issue:** Commit ad6b6f5 switched 3 data collectors from the dead FMP API to new providers: estimates.py now uses yfinance (no API key), congress.py uses Finnhub (needs FINNHUB_API_KEY), and short_interest.py added FINRA OAuth2 client credentials flow. The CLAUDE.md data sources table lists data types and collector scripts but doesn't mention the underlying API providers or their requirements. An agent working in the repo wouldn't know that FMP is dead (free tier deprecated Aug 2025, returns 403) or that FINNHUB_API_KEY is now a required env var.
+**Suggestion:** Add a note to the Data Sources table or an Operational Gotchas entry documenting: (1) FMP is dead, don't use it, (2) yfinance is used for estimates (no key needed), (3) Finnhub is used for congressional trades (needs FINNHUB_API_KEY in .env), (4) FINRA OAuth2 for short interest (token acquisition works, endpoint discovery in progress). This should be done when PR #37 (restore Operational Gotchas) merges, to avoid merge conflicts.
+**Priority:** MEDIUM — agents modifying collectors need to know which APIs are live and which env vars are required.
