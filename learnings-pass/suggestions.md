@@ -879,3 +879,18 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Pass 4 instructions reference `{{REPOS_ROOT}}/auto-dev/run.sh`, `{{REPOS_ROOT}}/auto-dev/fix-checker/`, and `{{REPOS_ROOT}}/auto-dev/learnings-pass/prompt.md`. The repo was renamed from `auto-dev` to `autonomousDev`. When `{{REPOS_ROOT}}` expands, these resolve to non-existent paths, so the learning agent can't find the files it's told to review.
 **Suggestion:** Update all three references from `auto-dev` to `autonomousDev`.
 **Priority:** LOW — the learning agent works around this because it's already running from inside autonomousDev, but the instructions are technically wrong.
+
+---
+
+## 2026-04-27 — Learning Agent Run #365
+
+### S148: trading-agent has 3 conflicting CLAUDE.md PRs — consolidate before merging
+**File:** trading-agent GitHub PRs (#24, #36, #37)
+**Issue:** Three open PRs all modify trading-agent's CLAUDE.md:
+- PR #24 (`claude/learnings-324`): adds NON_ASSET_TICKERS defense (very old, likely stale)
+- PR #36 (`claude/learnings-361`): adds Operational Gotchas section
+- PR #37 (`claude/learnings-362`): restores Operational Gotchas deleted by commit efe958d
+
+The Operational Gotchas section was deleted from master by efe958d ("Add 4 differentiated data sources") and has NOT been restored — commit 6f49cb8 that restores it lives only on branch `claude/learnings-362` (PR #37). PR #36 is superseded by PR #37. PR #24 is stale (3+ days old). Additionally, S147 (data source provider documentation — yfinance, Finnhub, FINRA) also needs to go in CLAUDE.md but can't be created while conflicting PRs are open.
+**Suggestion:** Close PRs #24 and #36 (stale/superseded). Merge PR #37 to restore the gotchas. Then create a fresh PR for S147 data source provider docs.
+**Priority:** HIGH — master is missing operational documentation (gotchas) that agents need for safe trading-agent work.
