@@ -879,3 +879,25 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Pass 4 instructions reference `{{REPOS_ROOT}}/auto-dev/run.sh`, `{{REPOS_ROOT}}/auto-dev/fix-checker/`, and `{{REPOS_ROOT}}/auto-dev/learnings-pass/prompt.md`. The repo was renamed from `auto-dev` to `autonomousDev`. When `{{REPOS_ROOT}}` expands, these resolve to non-existent paths, so the learning agent can't find the files it's told to review.
 **Suggestion:** Update all three references from `auto-dev` to `autonomousDev`.
 **Priority:** LOW — the learning agent works around this because it's already running from inside autonomousDev, but the instructions are technically wrong.
+
+---
+
+## 2026-04-27 — Learning Agent Run #364
+
+### S142: Ghost ref cycling in auto-merger creates excessive duplicate PRs
+**File:** `claude-auto-merger/server.js`
+**Issue:** Auto-dev runs frequently trigger 2-9 duplicate merge PRs from a single source change. Examples from this burst: promptlibrary 9 duplicates (#117-#125), health-hub 4 duplicates (#14-#17), and similar patterns in other repos. The auto-merger creates a PR, the source branch gets deleted by the merge, then a subsequent push event re-creates the branch and triggers another merge cycle.
+**Suggestion:** Investigate the ghost ref cycling root cause. Potential fix: track recently merged branch names and skip PR creation if the branch was merged within the last 5 minutes. Or add idempotency checks before createPullRequest calls.
+**Priority:** MEDIUM — functional (PRs still merge correctly) but creates noise in PR history and wastes API calls.
+
+### S143: ESLint v9 flat config campaign complete across all repos
+**File:** `agentGuidance/guidance/code-review.md` (informational)
+**Issue:** Auto-dev runs 194-211 deployed ESLint v9 flat config (`eslint.config.js` or `eslint.config.mjs`) with `@eslint/js` recommended rules to every JS/TS repo. All repos now have `npm run lint`. Common environment overrides: Node.js globals, browser globals, Chrome extension APIs, GM_* Tampermonkey globals. This is a milestone but not documented as a standard anywhere.
+**Suggestion:** Consider adding a brief note to code-review.md: "All JS/TS repos have ESLint v9 flat config with `npm run lint`. Run lint before committing." This makes it explicit for agents that don't have the campaign context.
+**Priority:** LOW — agents discover `npm run lint` from repo CLAUDE.md files, but a cross-project note would reinforce it.
+
+### S144: GitHub Actions billing/minutes exhaustion blocking CI
+**File:** Infrastructure (GitHub account settings)
+**Issue:** Multiple auto-dev runs (#183, #199) note "GitHub Actions billing/minutes exhaustion" or "OAuth token lacks workflow scope" preventing CI workflow pushes. This means tests added by auto-dev have no CI gate on future PRs until billing is resolved.
+**Suggestion:** Check GitHub billing page and either add billing info or consider self-hosted runners for CI. Also, the auto-dev CLAUDE.md could note that CI workflow creation may fail when billing is exhausted.
+**Priority:** LOW — tests still run locally via auto-dev, and the auto-merger runs tests before merging.
