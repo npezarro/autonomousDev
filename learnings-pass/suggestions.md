@@ -879,3 +879,19 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Pass 4 instructions reference `{{REPOS_ROOT}}/auto-dev/run.sh`, `{{REPOS_ROOT}}/auto-dev/fix-checker/`, and `{{REPOS_ROOT}}/auto-dev/learnings-pass/prompt.md`. The repo was renamed from `auto-dev` to `autonomousDev`. When `{{REPOS_ROOT}}` expands, these resolve to non-existent paths, so the learning agent can't find the files it's told to review.
 **Suggestion:** Update all three references from `auto-dev` to `autonomousDev`.
 **Priority:** LOW — the learning agent works around this because it's already running from inside autonomousDev, but the instructions are technically wrong.
+
+---
+
+## 2026-04-27 — Learning Agent Run #362
+
+### S145: ESLint v9 now standard across 15+ repos but not in agent.md or guidance
+**File:** `agentGuidance/agent.md` (Commands section) or `agentGuidance/guidance/code-review.md`
+**Issue:** The ESLint v9 flat config campaign is complete (S143 flagged completion). 15+ repos now have `npm run lint` with standardized configs. However, neither `agent.md` (Commands section) nor any guidance file mentions running lint as a pre-commit step. Individual repo CLAUDE.md files document it, but agents starting fresh on a repo without reading its CLAUDE.md won't know to lint. The `npm run build` command in agent.md catches build errors but not lint errors.
+**Suggestion:** Add `npm run lint` to `agent.md` Commands section (1 line, keeps file at 88 lines) or add a lint step to `guidance/code-review.md` pre-commit checklist: "Run `npm run lint` if the repo has a lint script."
+**Priority:** LOW — individual repo CLAUDE.md files cover this, and most lint errors are also caught by ESLint CI. But making it a global habit prevents the "fix lint in follow-up commit" pattern.
+
+### S146: CLAUDE.md sections can be silently deleted by subsequent commits
+**File:** `agentGuidance/guidance/code-review.md`
+**Issue:** trading-agent commit `9a37fd1` added an "Operational Gotchas" section to CLAUDE.md, then commit `efe958d` (adding data source rows) accidentally deleted it by rewriting the file without the section. The auto-dev agent that made the second commit didn't read the existing CLAUDE.md before writing its changes. This pattern can occur whenever multiple sessions or agents modify the same file.
+**Suggestion:** Add to code-review.md: "When editing CLAUDE.md, read the current HEAD version first. Never overwrite the file; use targeted Edit operations. After committing, verify the full CLAUDE.md content is intact."
+**Priority:** MEDIUM — operational documentation loss is silent and hard to detect. This specific instance deleted 5 important gotchas that prevent known trading-agent bugs.
