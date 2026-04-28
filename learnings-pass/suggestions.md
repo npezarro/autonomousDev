@@ -879,3 +879,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Pass 4 instructions reference `{{REPOS_ROOT}}/auto-dev/run.sh`, `{{REPOS_ROOT}}/auto-dev/fix-checker/`, and `{{REPOS_ROOT}}/auto-dev/learnings-pass/prompt.md`. The repo was renamed from `auto-dev` to `autonomousDev`. When `{{REPOS_ROOT}}` expands, these resolve to non-existent paths, so the learning agent can't find the files it's told to review.
 **Suggestion:** Update all three references from `auto-dev` to `autonomousDev`.
 **Priority:** LOW — the learning agent works around this because it's already running from inside autonomousDev, but the instructions are technically wrong.
+
+---
+
+## 2026-04-28 — Learning Agent Run #368
+
+### S149: Bash `&` backreference bug in run.sh template substitution corrupts prompts
+**File:** `autonomousDev/learnings-pass/run.sh` (lines 286-295)
+**Issue:** Bash 5.2+ treats `&` in the replacement string of `${var//pattern/replacement}` as a backreference to the matched pattern. When any substituted variable ($MEMORY_SCAN, $GIT_ACTIVITY, $CLI_INTERACTIONS, etc.) contains `&` (common in `P&L`, URLs, HTML entities), the `&` gets replaced with the template tag itself. For example, `P&L` in $MEMORY_SCAN becomes `P{{MEMORY_SCAN}}L` in the final prompt. Confirmed with bash 5.2.21 on the current system.
+**Suggestion:** Escape `&` in all replacement variables before substitution. For each variable, add: `VAR="${VAR//&/\\&}"` before the template substitution line. Alternatively, switch to `sed` or `perl` for template substitution, or use a Python/Node script for prompt assembly.
+**Priority:** HIGH — actively corrupts every prompt that contains `&` in any data source. The learning agent receives garbled context, reducing its ability to detect patterns in trading-agent P&L data, URL parameters, and other content.
