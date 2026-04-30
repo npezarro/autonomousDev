@@ -889,3 +889,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Bash 5.2+ treats `&` in the replacement string of `${var//pattern/replacement}` as a backreference to the matched pattern. When any substituted variable ($MEMORY_SCAN, $GIT_ACTIVITY, $CLI_INTERACTIONS, etc.) contains `&` (common in `P&L`, URLs, HTML entities), the `&` gets replaced with the template tag itself. For example, `P&L` in $MEMORY_SCAN becomes `P{{MEMORY_SCAN}}L` in the final prompt. Confirmed with bash 5.2.21 on the current system.
 **Suggestion:** Escape `&` in all replacement variables before substitution. For each variable, add: `VAR="${VAR//&/\\&}"` before the template substitution line. Alternatively, switch to `sed` or `perl` for template substitution, or use a Python/Node script for prompt assembly.
 **Priority:** HIGH — actively corrupts every prompt that contains `&` in any data source. The learning agent receives garbled context, reducing its ability to detect patterns in trading-agent P&L data, URL parameters, and other content.
+
+---
+
+## 2026-04-30 — Learning Agent Run #415
+
+### S150: autonomousDev consistently skips CLAUDE.md updates (Rule #7 pattern)
+**File:** `autonomousDev/run.sh` prompt / config
+**Issue:** autonomousDev makes cross-repo infrastructure changes (self-host fonts, focus-visible, ESLint configs, input validation, route tests) but never updates the target repo's CLAUDE.md. The learning agent has caught this in: groceryGenius (PR #169, @fontsource fonts), runEvaluator (PRs #135/#136, next/font/google), finance-tracker (ed293f8, benefit detection), and others. Each time the learning agent creates a follow-up PR to patch the gap. This is the most common source of Rule #7 violations.
+**Suggestion:** Add a verification step to the autonomousDev runner: after making code changes to a repo, check if the change introduces a new pattern (new dependency, new architecture pattern, new config approach) and if so, update CLAUDE.md in the same PR. Alternatively, add a post-commit check that reads the diff and flags if CLAUDE.md might need updating.
+**Priority:** MEDIUM — the learning agent catches these gaps eventually, but it adds latency (hours to days) and creates extra PRs. Fixing at the source would eliminate this entire class of follow-up work.
