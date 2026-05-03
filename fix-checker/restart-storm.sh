@@ -12,7 +12,7 @@ PROCESS_NAME="${1:-}"
 DRY_RUN="${2:-}"
 STORM_THRESHOLD=5          # restarts in current check window = storm
 STABILITY_WAIT=30          # seconds to wait after rollback before verifying
-VM_HOST="REDACTED_VM_HOST"
+VM_HOST="${VM_HOST:?Set VM_HOST}"
 
 if [ -z "$PROCESS_NAME" ]; then
   echo "Usage: $0 <process-name> [--dry-run]"
@@ -21,20 +21,15 @@ fi
 
 log() { echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) [restart-storm] $*"; }
 
-# ── Map PM2 process name to repo and deploy name ──────────────────
-declare -A PROCESS_TO_REPO=(
-  [claude-bot]=REDACTED_DISCORD_BOT_REPO
-  [runeval]=runEvaluator
-  [promptlibrary]=promptlibrary
-  [pezant-tools]=pezantTools
-  [claude-auto-merger]=claude-auto-merger
-  [runeval-staging]=runeval
-  [grocerygenius-staging]=groceryGenius
-  [promptlibrary-staging]=promptlibrary
-  [free-games]=freeGames
-  [epic-claimer]=freeGames
-  [housing-scout]=deal-scout
-)
+# ── Map PM2 process name to repo — loaded from privateContext ─────
+PROCESS_MAP_FILE="${PROCESS_MAP_FILE:-$HOME/repos/privateContext/pm2-process-map.sh}"
+if [ -f "$PROCESS_MAP_FILE" ]; then
+  # shellcheck source=/dev/null
+  source "$PROCESS_MAP_FILE"
+else
+  echo "ERROR: PM2 process map not found at $PROCESS_MAP_FILE" >&2
+  exit 1
+fi
 
 REPO_NAME="${PROCESS_TO_REPO[$PROCESS_NAME]:-}"
 if [ -z "$REPO_NAME" ]; then
