@@ -33,7 +33,7 @@
 - **Proposal mode untested** — Will activate organically when 7d usage crosses 50%
 - **S6: Branch name collision:** Runner could fail if previous learnings branch isn't cleaned up
 
-Full session closeout: `privateContext/deliverables/closeouts/2026-04-22-fix-checker-two-tier-strategy.md`
+Full session closeout: see privateContext/deliverables/closeouts/
 
 ## Environment Notes
 - **Deploy target:** GCP VM (see privateContext for details)

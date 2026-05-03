@@ -40,16 +40,8 @@ No active free games on these platforms in the GamerPower results currently.
 - `src/checkout-server.js` — HTTP webhook server for Epic checkout
 - `src/epic-auto-checkout.js` — CLI wrapper for manual checkout
 
-## VM PM2 Processes
-- `free-games` (id 12) — Daily at 10:03am PT, cron in ecosystem.config.js
-- `epic-claimer` (id 14) — claabs tool, every 6h
-- `epic-checkout` (id 16) — Webhook server on port 3100
-
-## Credentials
-All platform credentials are stored in the `.env` file in the freeGames repo on the VM. Includes:
-- Platform login credentials (Epic, Steam, Amazon, GOG, Itch.io, Humble Bundle)
-- Email integration for 2FA code polling and game code forwarding
-- Discord webhooks for claim notifications
+## VM Deployment
+See privateContext/infrastructure.md for PM2 process names, ports, and credential locations.
 
 ## Suggested Approach
 1. Fix GOG 2FA — debug the email sender/pattern, test IMAP query

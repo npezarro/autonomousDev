@@ -310,7 +310,7 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 
 ### S49: comprehensive-closeout.md hardcoded memory path resolved (S26)
 **File:** `agentGuidance/guidance/comprehensive-closeout.md` (line 93)
-**Issue:** Hardcoded `~/.claude/projects/-mnt-c-Users-npeza/memory/` — both user-specific (sensitive identifier) and wrong for sessions started from other working directories. Flagged since run #11 (S26).
+**Issue:** Hardcoded `~/.claude/projects/-mnt-c-Users-<user>/memory/` — both user-specific (sensitive identifier) and wrong for sessions started from other working directories. Flagged since run #11 (S26).
 **Suggestion:** Replaced with generic `~/.claude/projects/<project-path>/memory/` template. Fixed in this run (agentGuidance PR #139, auto-merged).
 
 ---

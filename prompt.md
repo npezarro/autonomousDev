@@ -138,10 +138,7 @@ You have Playwright available for visual verification. **After making UI changes
 
 ## Private Context
 
-Before starting, read these files for deduplication and account context:
-- `{{REPOS_ROOT}}/privateContext/completed-work.md` — what's already done, don't repeat it
-- `{{REPOS_ROOT}}/privateContext/accounts.md` — service accounts and API locations
-- `{{REPOS_ROOT}}/privateContext/infrastructure.md` — server details, URLs, ports
+Before starting, read `{{REPOS_ROOT}}/privateContext/` for deduplication, account context, and infrastructure details.
 
 After completing work, **append to `{{REPOS_ROOT}}/privateContext/completed-work.md`** so future sessions know.
 
