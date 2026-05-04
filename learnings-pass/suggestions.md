@@ -889,3 +889,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** CLAUDE.md Risk Rules section says "No shorts, margin, options, or leveraged ETFs" but commits fcba0ff and 08b901c (2026-05-04) added: (1) option position visibility in LLM prompt, (2) LLM-routed option sells via close_position API, (3) PLTR earnings options experiment script. risk.py now allows sells for existing option positions while blocking buys. The rule should reflect the current state: option buys are blocked but sells for existing positions are allowed.
 **Suggestion:** Update line 34 to: "No shorts, margin, or leveraged ETFs. Options: sells only for existing positions (buys blocked in risk engine)." Also document the `experiments/` directory. Note: there are already 5 unmerged CLAUDE.md PRs on trading-agent (#24, #36, #37, #39, #40); consider batch-merging before adding more.
 **Priority:** MEDIUM — CLAUDE.md drift causes agents to refuse valid option sell commands citing the "No options" rule.
+
+---
+
+## 2026-05-04 — Learning Agent Run #453
+
+### S153: Add "mechanical > behavioral" enforcement principle to operational-safety.md
+**File:** `agentGuidance/guidance/operational-safety.md`
+**Issue:** When a guidance rule is violated despite existing documentation, the standard response is to add more text (stronger wording, more examples). But the Google Docs formatting session (2026-05-04) demonstrated that mechanical enforcement (PreToolUse hooks that inject the rule at call time) is more reliable than behavioral instructions for repeatedly-violated rules. This principle is applied ad-hoc (deployment.md has post-deploy hooks, the Google Docs hook exists) but isn't stated as a general strategy.
+**Suggestion:** Add a section to operational-safety.md: "Escalation: Behavioral → Mechanical. If a documented rule is violated 2+ times, escalate from behavioral (guidance text) to mechanical enforcement (hooks, linting, CI checks). Behavioral rules rely on the agent reading and remembering; mechanical rules fire automatically. Examples: PreToolUse hooks for formatting compliance, post-deploy hooks for verification, pre-commit hooks for secret scanning."
+**Priority:** LOW — meta-operational insight, currently applied case-by-case. Formalizing would help future mistake postmortems (Rule #10) choose the right fix type.
