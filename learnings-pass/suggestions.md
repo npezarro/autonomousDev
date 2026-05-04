@@ -889,3 +889,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** CLAUDE.md Risk Rules section says "No shorts, margin, options, or leveraged ETFs" but commits fcba0ff and 08b901c (2026-05-04) added: (1) option position visibility in LLM prompt, (2) LLM-routed option sells via close_position API, (3) PLTR earnings options experiment script. risk.py now allows sells for existing option positions while blocking buys. The rule should reflect the current state: option buys are blocked but sells for existing positions are allowed.
 **Suggestion:** Update line 34 to: "No shorts, margin, or leveraged ETFs. Options: sells only for existing positions (buys blocked in risk engine)." Also document the `experiments/` directory. Note: there are already 5 unmerged CLAUDE.md PRs on trading-agent (#24, #36, #37, #39, #40); consider batch-merging before adding more.
 **Priority:** MEDIUM — CLAUDE.md drift causes agents to refuse valid option sell commands citing the "No options" rule.
+
+---
+
+## 2026-05-04 — Learning Agent Run #452
+
+### S152: discord-ecosystem wiki missing #referral-codes channel
+**File:** `knowledgeBase/integrations/discord-ecosystem.md`
+**Issue:** The Channel Map table doesn't include `#referral-codes` (owned by reddit-referral-poster bot, excluded from the main bot's catchall via env var). The `consumers` frontmatter also doesn't list `reddit-referral-poster`. The env-var-based channel exclusion mechanism isn't mentioned in the wiki page.
+**Suggestion:** Add `#referral-codes` to the Channel Map (Purpose: "Referral code auto-posting to Reddit", Who Posts: "User drops codes, reddit-referral-poster bot queues"). Add `reddit-referral-poster` to consumers frontmatter. Add brief note about `CATCHALL_IGNORE_CHANNELS` as the mechanism for dynamic channel exclusion.
+**Priority:** LOW — wiki is informational; the operational pattern is captured in the bot's CLAUDE.md (PR #183).
