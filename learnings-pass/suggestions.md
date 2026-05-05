@@ -899,3 +899,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Node 20 reached End of Life on April 30, 2026. 30+ repos still use `node-version: 20` in their CI workflows (e.g., botlink, promptlibrary, finance-tracker, groceryGenius, job-scraper, etc.). Only 6 repos have migrated to Node 22 (browser-logs, fb-marketplace-poster, reddit-referral-poster, url-vault, youtubeSpeedSetAndRemember, claude-tray-notifier). The testing.md guidance has been updated to Node 22, but existing repos need to be migrated.
 **Suggestion:** Add a "CI Node 22 migration" task to autonomousDev's standard run queue. Each run can update 2-3 repos: change `node-version: 20` to `node-version: 22` in CI workflows, run tests to verify compatibility, and push. Estimated 10-15 runs to complete the migration.
 **Priority:** MEDIUM — Node 20 is EOL, security patches no longer provided. No immediate breakage but the gap grows over time.
+
+---
+
+## 2026-05-05 — Learning Agent Run #462
+
+### S155: Standard CI workflow template for autonomousDev
+**File:** `agentGuidance/guidance/testing.md` or `autonomousDev/templates/`
+**Issue:** autonomousDev runs 265-284 have added CI workflows to 20+ repos, each time recreating the same pattern: (1) lint, (2) test, (3) build (when applicable), on Node 22. Each run writes the workflow from scratch, occasionally with minor variations (some include build, some don't; some use `npm run build` only if the script exists). A standard template would reduce per-run token cost and ensure consistency.
+**Suggestion:** Add a "standard CI workflow" section to testing.md or create a template in autonomousDev/templates/ that documents the canonical steps: lint (if eslint.config exists), test (if test script exists), build (if build script exists), on Node 22. autonomousDev could reference this template instead of reinventing each time.
+**Priority:** LOW — the current approach works, just uses more tokens per run. The consistency gap is minor.
