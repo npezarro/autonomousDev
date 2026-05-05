@@ -46,10 +46,7 @@ No active free games on these platforms in the GamerPower results currently.
 - `epic-checkout` (id 16) — Webhook server on port 3100
 
 ## Credentials
-All platform credentials are stored in the `.env` file in the freeGames repo on the VM. Includes:
-- Platform login credentials (Epic, Steam, Amazon, GOG, Itch.io, Humble Bundle)
-- Email integration for 2FA code polling and game code forwarding
-- Discord webhooks for claim notifications
+See privateContext for credential locations and platform details.
 
 ## Suggested Approach
 1. Fix GOG 2FA — debug the email sender/pattern, test IMAP query

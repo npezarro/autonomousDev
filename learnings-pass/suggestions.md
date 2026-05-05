@@ -889,3 +889,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** CLAUDE.md Risk Rules section says "No shorts, margin, options, or leveraged ETFs" but commits fcba0ff and 08b901c (2026-05-04) added: (1) option position visibility in LLM prompt, (2) LLM-routed option sells via close_position API, (3) PLTR earnings options experiment script. risk.py now allows sells for existing option positions while blocking buys. The rule should reflect the current state: option buys are blocked but sells for existing positions are allowed.
 **Suggestion:** Update line 34 to: "No shorts, margin, or leveraged ETFs. Options: sells only for existing positions (buys blocked in risk engine)." Also document the `experiments/` directory. Note: there are already 5 unmerged CLAUDE.md PRs on trading-agent (#24, #36, #37, #39, #40); consider batch-merging before adding more.
 **Priority:** MEDIUM — CLAUDE.md drift causes agents to refuse valid option sell commands citing the "No options" rule.
+
+---
+
+## 2026-05-05 — Learning Agent Run #461
+
+### S154: 30+ repos using EOL Node 20 in CI workflows
+**File:** `.github/workflows/test.yml` across 30+ repos
+**Issue:** Node 20 reached End of Life on April 30, 2026. 30+ repos still use `node-version: 20` in their CI workflows (e.g., botlink, promptlibrary, finance-tracker, groceryGenius, job-scraper, etc.). Only 6 repos have migrated to Node 22 (browser-logs, fb-marketplace-poster, reddit-referral-poster, url-vault, youtubeSpeedSetAndRemember, claude-tray-notifier). The testing.md guidance has been updated to Node 22, but existing repos need to be migrated.
+**Suggestion:** Add a "CI Node 22 migration" task to autonomousDev's standard run queue. Each run can update 2-3 repos: change `node-version: 20` to `node-version: 22` in CI workflows, run tests to verify compatibility, and push. Estimated 10-15 runs to complete the migration.
+**Priority:** MEDIUM — Node 20 is EOL, security patches no longer provided. No immediate breakage but the gap grows over time.
