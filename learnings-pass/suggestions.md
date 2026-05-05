@@ -899,3 +899,29 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Node 20 reached End of Life on April 30, 2026. 30+ repos still use `node-version: 20` in their CI workflows (e.g., botlink, promptlibrary, finance-tracker, groceryGenius, job-scraper, etc.). Only 6 repos have migrated to Node 22 (browser-logs, fb-marketplace-poster, reddit-referral-poster, url-vault, youtubeSpeedSetAndRemember, claude-tray-notifier). The testing.md guidance has been updated to Node 22, but existing repos need to be migrated.
 **Suggestion:** Add a "CI Node 22 migration" task to autonomousDev's standard run queue. Each run can update 2-3 repos: change `node-version: 20` to `node-version: 22` in CI workflows, run tests to verify compatibility, and push. Estimated 10-15 runs to complete the migration.
 **Priority:** MEDIUM — Node 20 is EOL, security patches no longer provided. No immediate breakage but the gap grows over time.
+
+---
+
+## 2026-05-05 — Learning Agent Run #462
+
+### S155: Standard CI workflow template for autonomousDev
+**File:** `agentGuidance/guidance/testing.md` or `autonomousDev/templates/`
+**Issue:** autonomousDev runs 265-284 have added CI workflows to 20+ repos, each time recreating the same pattern: (1) lint, (2) test, (3) build (when applicable), on Node 22. Each run writes the workflow from scratch, occasionally with minor variations. A standard template would reduce per-run token cost and ensure consistency.
+**Suggestion:** Add a "standard CI workflow" section to testing.md or create a template in autonomousDev/templates/ that documents the canonical steps: lint (if eslint.config exists), test (if test script exists), build (if build script exists), on Node 22.
+**Priority:** LOW — the current approach works, just uses more tokens per run.
+
+---
+
+## 2026-05-05 — Learning Agent Run #463
+
+### S156: Learning agent should restore repos to main branch after work
+**File:** `autonomousDev/learnings-pass/prompt.md`
+**Issue:** The learning agent creates branches like `claude/learnings-NNN` on repos it modifies but doesn't switch back to main after completing work. This leaves repos checked out on learnings branches. User sessions that open these repos next may accidentally commit to the learnings branch instead of main. Observed: deep-research guidance (commit 191fade) was committed to `claude/learnings-461` by a user session that found agentGuidance on that branch. The guidance is now stuck on a PR branch instead of being on main.
+**Suggestion:** Add a final cleanup step to the learning agent prompt: "After pushing all branches and creating PRs, run `git checkout main` on every repo you modified to restore them to the default branch." Alternatively, the learning-agent run.sh wrapper could handle this automatically.
+**Priority:** MEDIUM — this causes guidance updates to be silently misdirected, and users don't notice until they check branch status.
+
+### S157: agentGuidance PRs not auto-merged, creating guidance backlog
+**File:** `claude-auto-merger` configuration
+**Issue:** The auto-merger does not handle agentGuidance PRs (confirmed: `REPO_DEPLOY_MAP['agentGuidance']` is undefined). This is likely intentional (guidance changes should be reviewed) but has created a backlog of 9 unmerged PRs (#197-#205) spanning 8 days. These include valuable updates: Node CI standard, npm overrides, mailmap technique, error detail leak patterns, ESSENTIAL rule broadening, deep-research guidance. None of these are reaching agents until manually merged.
+**Suggestion:** Either (1) add agentGuidance to auto-merger with a CI-pass-only gate (no deploy), or (2) establish a weekly batch-merge cadence for agentGuidance PRs. Option 1 is preferred since the pre-commit hook already blocks secrets.
+**Priority:** MEDIUM — 9 PRs of guidance improvements are invisible to agents. The backlog grows by ~1 PR/day.
