@@ -22,19 +22,18 @@ fi
 log() { echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) [restart-storm] $*"; }
 
 # ── Map PM2 process name to repo and deploy name ──────────────────
-declare -A PROCESS_TO_REPO=(
-  [claude-bot]=REDACTED_DISCORD_BOT_REPO
-  [runeval]=runEvaluator
-  [promptlibrary]=promptlibrary
-  [pezant-tools]=pezantTools
-  [claude-auto-merger]=claude-auto-merger
-  [runeval-staging]=runeval
-  [grocerygenius-staging]=groceryGenius
-  [promptlibrary-staging]=promptlibrary
-  [free-games]=freeGames
-  [epic-claimer]=freeGames
-  [housing-scout]=deal-scout
-)
+# Mapping loaded from process-map.conf (gitignored) to avoid exposing service architecture
+PROCESS_MAP="${PROCESS_MAP:-$(dirname "$0")/process-map.conf}"
+if [ ! -f "$PROCESS_MAP" ]; then
+  log "ERROR: process-map.conf not found at $PROCESS_MAP"
+  exit 1
+fi
+
+declare -A PROCESS_TO_REPO
+while IFS='=' read -r key val; do
+  [[ "$key" =~ ^#.*$ || -z "$key" ]] && continue
+  PROCESS_TO_REPO["$key"]="$val"
+done < "$PROCESS_MAP"
 
 REPO_NAME="${PROCESS_TO_REPO[$PROCESS_NAME]:-}"
 if [ -z "$REPO_NAME" ]; then

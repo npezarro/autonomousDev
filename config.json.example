@@ -1,0 +1,14 @@
+{
+  "repos_root": "REDACTED_REPOS_ROOT",
+  "repos": [
+    "my-public-repo-1",
+    "my-public-repo-2"
+  ],
+  "protected_repos": [
+    "my-protected-repo"
+  ],
+  "staging_only": true,
+  "cap_threshold_percent": 70,
+  "max_turns_per_run": 1,
+  "branch_prefix": "claude/auto"
+}

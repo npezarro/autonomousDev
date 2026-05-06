@@ -13,3 +13,7 @@ node_modules/
 *.pem
 *.key
 .DS_Store
+repos.conf
+config.json
+fix-checker/process-map.conf
+.claude/

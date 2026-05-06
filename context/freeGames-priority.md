@@ -8,7 +8,7 @@ This repo needs focused attention. The free game discovery and auto-claim system
 The direct Playwright login hits Epic's puzzle CAPTCHA every time. This is handled by the separate `epic-claimer` PM2 process (claabs/epicgames-freegames-node) which uses device code auth. The Playwright `src/claim/epic.js` module will always fail — consider skipping the Playwright Epic claim attempt entirely since `epic-claimer` handles it.
 
 ### 2. Epic Checkout CAPTCHA (NEEDS FIX)
-The `epic-checkout` server (port 3100) receives checkout URLs from `epic-claimer` and tries to complete them via Playwright, but Epic's checkout also requires login which hits CAPTCHA. The checkout server needs to use the device auth token from `epic-claimer` instead of Playwright login. Look at Epic's purchase API — the checkout may be completable via API call with the bearer token from the Epic claimer's device auth config on the VM.
+The `epic-checkout` server receives checkout URLs from `epic-claimer` and tries to complete them via Playwright, but Epic's checkout also requires login which hits CAPTCHA. The checkout server needs to use the device auth token from `epic-claimer` instead of Playwright login. Look at Epic's purchase API — the checkout may be completable via API call with the bearer token from the Epic claimer's device auth config on the VM.
 
 ### 3. GOG 2FA email code not found (NEEDS FIX)
 GOG sends a 4-digit security code to REDACTED_EMAIL. The `pollEmailCode("noreply@gog.com", /\b(\d{4})\b/, 60)` call isn't finding the code. Possible issues:
@@ -41,9 +41,7 @@ No active free games on these platforms in the GamerPower results currently.
 - `src/epic-auto-checkout.js` — CLI wrapper for manual checkout
 
 ## VM PM2 Processes
-- `free-games` (id 12) — Daily at 10:03am PT, cron in ecosystem.config.js
-- `epic-claimer` (id 14) — claabs tool, every 6h
-- `epic-checkout` (id 16) — Webhook server on port 3100
+See privateContext for PM2 process IDs and port assignments.
 
 ## Credentials
 See privateContext for credential locations and platform details.

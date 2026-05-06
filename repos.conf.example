@@ -1,0 +1,13 @@
+# repos.conf — Shared repo list for auto-dev scripts.
+# Sourced by run.sh and overnight-summary.sh to keep the list in sync.
+# One repo name per line. Lines starting with # are ignored.
+# Auto-discovery in run.sh will append new repos here.
+#
+# Copy this file to repos.conf and populate with your repo names:
+#   cp repos.conf.example repos.conf
+#
+# repos.conf is gitignored to avoid exposing private repo names.
+
+# Add your repos here, one per line:
+# my-public-repo
+# my-other-repo
