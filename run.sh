@@ -73,8 +73,8 @@ trap 'rm -f "$LOCK_FILE"' EXIT
 # A "night" is one cron window (UTC date). A snapshot of usage is taken on the
 # first run of each night. Subsequent runs compare current usage to the snapshot.
 
-NIGHTLY_BUDGET_CAP=2   # max % usage autonomous dev may consume per night
-HARD_STOP=80           # absolute usage ceiling
+NIGHTLY_BUDGET_CAP=$(jq -r '.nightly_budget_cap_percent // 2' "$CONFIG" 2>/dev/null || echo 2)
+HARD_STOP=$(jq -r '.hard_stop_percent // 80' "$CONFIG" 2>/dev/null || echo 80)
 BUDGET_SNAPSHOT="$SCRIPT_DIR/.nightly-usage-snapshot.json"
 
 USAGE_SCRIPT=""
