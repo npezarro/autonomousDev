@@ -63,7 +63,19 @@ fi
 echo $$ > "$LOCK_FILE"
 trap 'rm -f "$LOCK_FILE"' EXIT
 
-# ── Usage check: live-poll usage and throttle dynamically ─────────────
+# ── Usage check: nightly 2% budget cap with last-24h uncap ───────────
+#
+# Budget rules:
+#   1. Normal nights: autonomous dev may consume at most 2% of usage per night
+#   2. Last 24h before 7d refresh: uncapped (can run freely up to 80% total)
+#   3. Hard stop at 80% usage always
+#
+# A "night" is one cron window (UTC date). A snapshot of usage is taken on the
+# first run of each night. Subsequent runs compare current usage to the snapshot.
+
+NIGHTLY_BUDGET_CAP=2   # max % usage autonomous dev may consume per night
+HARD_STOP=80           # absolute usage ceiling
+BUDGET_SNAPSHOT="$SCRIPT_DIR/.nightly-usage-snapshot.json"
 
 USAGE_SCRIPT=""
 for p in "$HOME/repos/privateContext/check-usage.sh" "$HOME/privateContext/check-usage.sh" "$HOME/repos/claude-usage-monitor/check-usage.sh"; do
@@ -73,28 +85,83 @@ if [ -n "$USAGE_SCRIPT" ]; then
   # Force-refresh the cache to get live numbers
   USAGE_OUTPUT=$("$USAGE_SCRIPT" --force 2>/dev/null || echo "")
 
-  # Extract the max percentage from the output (e.g. "5h: 14% ... 7d: 82%")
+  # Extract usage percentages
   USAGE_5H=$(echo "$USAGE_OUTPUT" | grep -oP '5h: \K[0-9.]+' | head -1)
   USAGE_7D=$(echo "$USAGE_OUTPUT" | grep -oP '7d: \K[0-9.]+' | head -1)
   MAX_USAGE=$(python3 -c "print(max(${USAGE_5H:-0}, ${USAGE_7D:-0}))" 2>/dev/null || echo 0)
 
+  # Extract 7d reset time from cached state
+  USAGE_STATE="$HOME/.cache/claude-usage-state.json"
+  RESET_7D=$(jq -r '.seven_day.resets_at // ""' "$USAGE_STATE" 2>/dev/null || echo "")
+
   log "USAGE: 5h=${USAGE_5H:-?}% 7d=${USAGE_7D:-?}% max=${MAX_USAGE}%"
 
-  # Hard stop at 75%
-  if python3 -c "exit(0 if $MAX_USAGE >= 75 else 1)" 2>/dev/null; then
-    log "SKIP: Usage at ${MAX_USAGE}% (>= 75%) — hard stop"
+  # Hard stop at 80% always
+  if python3 -c "exit(0 if $MAX_USAGE >= $HARD_STOP else 1)" 2>/dev/null; then
+    log "SKIP: Usage at ${MAX_USAGE}% (>= ${HARD_STOP}%) — hard stop"
     rm -f "$LOCK_FILE"
     exit 0
   fi
 
-  # Soft throttle: at 50-75%, skip every other run to conserve budget
-  if python3 -c "exit(0 if $MAX_USAGE >= 50 else 1)" 2>/dev/null; then
-    if [ $(( RUN_NUMBER % 2 )) -eq 0 ]; then
-      log "SKIP: Usage at ${MAX_USAGE}% (50-75%) — throttling (even run #$RUN_NUMBER)"
-      rm -f "$LOCK_FILE"
-      exit 0
+  # Check if we're in the last 24h before 7d refresh (uncapped mode)
+  UNCAPPED=false
+  if [ -n "$RESET_7D" ]; then
+    UNCAPPED=$(python3 -c "
+from datetime import datetime, timezone, timedelta
+try:
+    reset = datetime.fromisoformat('$RESET_7D'.replace('Z', '+00:00'))
+    now = datetime.now(timezone.utc)
+    hours_until_reset = (reset - now).total_seconds() / 3600
+    print('true' if 0 < hours_until_reset <= 24 else 'false')
+except:
+    print('false')
+" 2>/dev/null || echo "false")
+  fi
+
+  if [ "$UNCAPPED" = "true" ]; then
+    log "UNCAPPED: Within 24h of 7d refresh — bypassing nightly cap (hard stop at ${HARD_STOP}%)"
+  else
+    # Normal night: enforce 2% nightly budget cap
+    TODAY_UTC=$(date -u +%Y-%m-%d)
+
+    # Check if we need a new nightly snapshot
+    SNAPSHOT_DATE=""
+    if [ -f "$BUDGET_SNAPSHOT" ]; then
+      SNAPSHOT_DATE=$(jq -r '.date // ""' "$BUDGET_SNAPSHOT" 2>/dev/null || echo "")
     fi
-    log "THROTTLE: Usage at ${MAX_USAGE}% — running (odd run #$RUN_NUMBER)"
+
+    if [ "$SNAPSHOT_DATE" != "$TODAY_UTC" ]; then
+      # First run of the night: take snapshot
+      jq -n \
+        --arg date "$TODAY_UTC" \
+        --argjson usage_5h "${USAGE_5H:-0}" \
+        --argjson usage_7d "${USAGE_7D:-0}" \
+        '{date: $date, usage_5h: $usage_5h, usage_7d: $usage_7d}' \
+        > "$BUDGET_SNAPSHOT"
+      log "SNAPSHOT: New nightly snapshot — 5h=${USAGE_5H:-0}% 7d=${USAGE_7D:-0}%"
+    else
+      # Subsequent run: check delta from snapshot
+      SNAP_5H=$(jq -r '.usage_5h // 0' "$BUDGET_SNAPSHOT" 2>/dev/null || echo 0)
+      SNAP_7D=$(jq -r '.usage_7d // 0' "$BUDGET_SNAPSHOT" 2>/dev/null || echo 0)
+
+      BUDGET_EXCEEDED=$(python3 -c "
+snap_5h, snap_7d = $SNAP_5H, $SNAP_7D
+now_5h, now_7d = ${USAGE_5H:-0}, ${USAGE_7D:-0}
+delta_5h = now_5h - snap_5h
+delta_7d = now_7d - snap_7d
+# Use the max delta (whichever bucket grew more)
+max_delta = max(delta_5h, delta_7d, 0)
+print(f'{max_delta:.1f}')
+" 2>/dev/null || echo "0")
+
+      log "BUDGET: Nightly delta=${BUDGET_EXCEEDED}% (cap=${NIGHTLY_BUDGET_CAP}%)"
+
+      if python3 -c "exit(0 if float('$BUDGET_EXCEEDED') >= $NIGHTLY_BUDGET_CAP else 1)" 2>/dev/null; then
+        log "SKIP: Nightly budget exhausted (${BUDGET_EXCEEDED}% >= ${NIGHTLY_BUDGET_CAP}%) — stopping for tonight"
+        rm -f "$LOCK_FILE"
+        exit 0
+      fi
+    fi
   fi
 fi
 
@@ -231,15 +298,6 @@ if (( RUN_NUMBER % 2 == 0 )); then
   log "FEATURE RUN: Run #$RUN_NUMBER is a feature run (every 2nd run)"
 fi
 
-# ── Proposal mode: 7d usage > 50% → scan-only, no execution ──────────
-PROPOSAL_MODE=false
-if [ -n "${USAGE_7D:-}" ]; then
-  if python3 -c "exit(0 if ${USAGE_7D} > 50 else 1)" 2>/dev/null; then
-    PROPOSAL_MODE=true
-    log "PROPOSAL MODE: 7d usage at ${USAGE_7D}% (>50%) — scan and propose only, no execution"
-  fi
-fi
-
 # ── Build prompt ─────────────────────────────────────────────────────
 
 PROMPT=$(cat "$PROMPT_TEMPLATE")
@@ -251,7 +309,6 @@ PROMPT="${PROMPT//\{\{SCRIPT_DIR\}\}/$SCRIPT_DIR}"
 PROMPT="${PROMPT//\{\{DATE\}\}/$(date -u +%Y-%m-%d)}"
 PROMPT="${PROMPT//\{\{RUN_NUMBER\}\}/$RUN_NUMBER}"
 PROMPT="${PROMPT//\{\{FEATURE_RUN\}\}/$FEATURE_RUN}"
-PROMPT="${PROMPT//\{\{PROPOSAL_MODE\}\}/$PROPOSAL_MODE}"
 
 # Inject feature ideas context on feature runs
 if [ "$FEATURE_RUN" = true ] && [ -d "$SCRIPT_DIR/context" ]; then
@@ -365,8 +422,7 @@ jq -n \
   --argjson exit_code "$EXIT_CODE" \
   --arg cost "$COST" \
   --argjson feature_run "$( [ "$FEATURE_RUN" = true ] && echo true || echo false )" \
-  --argjson proposal_mode "$( [ "$PROPOSAL_MODE" = true ] && echo true || echo false )" \
-  '{run: $run, timestamp: $ts, run_type: $run_type, repo: $repo, pr: $pr, files_changed: $files, lines_changed: $lines, exit_code: $exit_code, cost: $cost, feature_run: $feature_run, proposal_mode: $proposal_mode}' \
+  '{run: $run, timestamp: $ts, run_type: $run_type, repo: $repo, pr: $pr, files_changed: $files, lines_changed: $lines, exit_code: $exit_code, cost: $cost, feature_run: $feature_run}' \
   >> "$OUTCOME_LOG" 2>/dev/null || true
 
 # ── Post to agent journal ────────────────────────────────────────────
