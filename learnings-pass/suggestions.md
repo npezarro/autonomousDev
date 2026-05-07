@@ -899,3 +899,28 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Node 20 reached End of Life on April 30, 2026. 30+ repos still use `node-version: 20` in their CI workflows (e.g., botlink, promptlibrary, finance-tracker, groceryGenius, job-scraper, etc.). Only 6 repos have migrated to Node 22 (browser-logs, fb-marketplace-poster, reddit-referral-poster, url-vault, youtubeSpeedSetAndRemember, claude-tray-notifier). The testing.md guidance has been updated to Node 22, but existing repos need to be migrated.
 **Suggestion:** Add a "CI Node 22 migration" task to autonomousDev's standard run queue. Each run can update 2-3 repos: change `node-version: 20` to `node-version: 22` in CI workflows, run tests to verify compatibility, and push. Estimated 10-15 runs to complete the migration.
 **Priority:** MEDIUM — Node 20 is EOL, security patches no longer provided. No immediate breakage but the gap grows over time.
+
+---
+
+## 2026-05-06 — Learning Agent Run #486
+
+### S158: Security profile experience.md entries contain sensitive identifiers
+**File:** `agentGuidance/profiles/security/experience.md` (local, uncommitted)
+**Issue:** 30+ security scan experience entries have accumulated locally in the security profile but were never committed because they contain sensitive identifiers (domain names, IPs, usernames, private repo names). These entries describe scan findings and reference the exact identifiers they detected, making them unsafe for the public agentGuidance repo. Other profile experience.md files (architect, debugger, reviewer) may have the same problem.
+**Suggestion:** Move all accumulated security profile experience entries to `privateContext/profiles/security-experience.md` instead. The public agentGuidance security profile should contain only sanitized pattern descriptions (e.g., "domain name leak in deploy scripts" not the actual domain). Create a redacted version for the public repo that describes patterns without identifiers.
+**Priority:** HIGH — These entries represent significant accumulated knowledge that is currently in a limbo state (local only, can't be committed). Moving to privateContext preserves the knowledge while maintaining public repo hygiene.
+
+---
+
+## 2026-05-07 — Learning Agent Run #491
+
+### S159: context-progress.md contradicted secrets-hygiene.md on infrastructure details
+**File:** `agentGuidance/guidance/context-progress.md` (lines 30-36)
+**Issue:** context-progress.md said "Environment Notes must include: SSH user and hostname, PM2 process name and port, Web server config file path..." without distinguishing public vs private repos. But secrets-hygiene.md explicitly says "context.md in public repos must NOT include: PM2 process names and port assignments, VM filesystem paths." This contradiction was the root cause of recurring security sanitization commits across 5+ repos (browser-agent, groceryGenius, autonomousDev, claude-bakeoff, claude-tray-notifier) where infrastructure details leaked into context.md/progress.md.
+**Resolution:** Fixed in this run -- added public repo caveat to context-progress.md's Environment Notes section.
+
+### S160: Memory-only learning: AI processing route preference
+**File:** Memory: `feedback_ai_processing_route.md`
+**Issue:** A cross-project preference ("Default to WSL via SSH tunnel for AI processing, not Anthropic SDK/API keys") exists only in memory. Per multi-destination rules, behavioral preferences affecting all projects should also be in agentGuidance. However, this is a user preference rather than a learned pattern from incidents, and the SSH tunnel architecture may evolve.
+**Suggestion:** Verify with user whether this preference is still current, then add to `guidance/deployment.md` or a new `guidance/ai-integration.md` if confirmed.
+**Priority:** LOW — the preference works via memory today; guidance propagation would help autonomous agents that don't load memory.
