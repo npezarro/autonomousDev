@@ -1,7 +1,7 @@
 # context.md
 
 ## Last Updated
-2026-05-11 — Added orchestration pipeline (Haiku selects repo + agent profiles) and post-agent verification (independent build/test gate)
+2026-05-11 — Fix-checker orchestration + on-demand `!code` dispatch via Discord
 
 ## Current State
 - **auto-dev** is the autonomous agent runner, executing cron-based jobs on the GCP VM
@@ -16,6 +16,13 @@
 - Selected profiles (identity + recent experience tail) are injected into the prompt as `## Agent Profile`
 - Configurable model via `config.json` field `orchestration_model` (default: haiku)
 - Graceful fallback: if orchestration fails, agent picks freely as before
+- **Fix-checker** also uses orchestration (added 2026-05-11): passes failure + crash context to orchestrate.sh
+
+### On-Demand Dispatch (added 2026-05-11)
+- `run.sh --repo <name> --task "<description>"` focuses the agent on a specific task
+- `--task` injects a "Directed Task" section that overrides the normal priority system
+- Discord command `!code <repo> <task>` triggers this from any channel
+- Full pipeline runs: orchestration -> execution -> verification -> Discord reporting
 
 ### Post-Agent Verification (added 2026-05-11)
 - **Post-agent**: `verify.sh` checks out the PR branch, runs `npm run build` + `npm test` independently
@@ -48,7 +55,7 @@
 - **Proposal mode untested** — Will activate organically when 7d usage crosses 50%
 - **S6: Branch name collision:** Runner could fail if previous learnings branch isn't cleaned up
 
-Full session closeout: `privateContext/deliverables/closeouts/2026-04-22-fix-checker-two-tier-strategy.md`
+Full session closeout: `privateContext/deliverables/closeouts/2026-05-11-fix-checker-orchestration-code-dispatch.md`
 
 ## Environment Notes
 - **Deploy target:** GCP VM (see privateContext for details)
