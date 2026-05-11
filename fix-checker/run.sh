@@ -136,6 +136,71 @@ if [ -f "$FAILURE_LOG" ]; then
   FAILURE_CONTEXT=$(tail -30 "$FAILURE_LOG" 2>/dev/null || echo "No prior failure checks.")
 fi
 
+# ── Orchestration: select agent profile(s) for fix work ──────────────
+
+PROFILES_DIR="$HOME/repos/agentGuidance/profiles"
+AGENT_PROFILE_SECTION=""
+
+if [ -x "$PARENT_DIR/orchestrate.sh" ] && [ -d "$PROFILES_DIR" ]; then
+  ORCH_REPOS_TMP=$(mktemp)
+  ORCH_CTX_TMP=$(mktemp)
+  echo "$REPO_LIST" > "$ORCH_REPOS_TMP"
+
+  # Combine prior context + failure context + crash context for orchestration
+  {
+    echo "$PRIOR_CONTEXT"
+    [ -n "$FAILURE_CONTEXT" ] && echo -e "\n## Recent Failures\n$FAILURE_CONTEXT"
+    [ -n "$CRASH_CONTEXT" ] && echo -e "\n## Active Crashes\n$CRASH_CONTEXT"
+  } > "$ORCH_CTX_TMP"
+
+  log "ORCHESTRATING: calling orchestrate.sh for fix-checker..."
+  ORCH_JSON=$("$PARENT_DIR/orchestrate.sh" \
+    --repos-file "$ORCH_REPOS_TMP" \
+    --context-file "$ORCH_CTX_TMP" \
+    --profiles-dir "$PROFILES_DIR" \
+    2>/dev/null || echo "")
+  rm -f "$ORCH_REPOS_TMP" "$ORCH_CTX_TMP"
+
+  if [ -n "$ORCH_JSON" ] && echo "$ORCH_JSON" | jq -e '.repo' >/dev/null 2>&1; then
+    ORCH_REPO=$(echo "$ORCH_JSON" | jq -r '.repo // ""')
+    ORCH_PROFILES=$(echo "$ORCH_JSON" | jq -r '.profiles[]' 2>/dev/null || echo "")
+    ORCH_STRATEGY=$(echo "$ORCH_JSON" | jq -r '.strategy // ""')
+
+    log "ORCHESTRATION: repo=$ORCH_REPO profiles=$(echo $ORCH_PROFILES | tr '\n' ',') strategy=$ORCH_STRATEGY"
+
+    for profile_key in $ORCH_PROFILES; do
+      PROFILE_FILE="$PROFILES_DIR/$profile_key/profile.md"
+      EXPERIENCE_FILE="$PROFILES_DIR/$profile_key/experience.md"
+      if [ -f "$PROFILE_FILE" ]; then
+        AGENT_PROFILE_SECTION="$AGENT_PROFILE_SECTION
+---
+$(cat "$PROFILE_FILE")"
+        if [ -f "$EXPERIENCE_FILE" ]; then
+          RECENT_EXP=$(tail -30 "$EXPERIENCE_FILE" 2>/dev/null || echo "")
+          [ -n "$RECENT_EXP" ] && AGENT_PROFILE_SECTION="$AGENT_PROFILE_SECTION
+
+### Recent Experience
+$RECENT_EXP"
+        fi
+      fi
+    done
+
+    if [ -n "$AGENT_PROFILE_SECTION" ]; then
+      AGENT_PROFILE_SECTION="## Agent Profile
+
+You are operating with the following specialist perspective(s) for this fix-checker session.
+
+**Focus area:** ${ORCH_REPO:-(scan all repos)}
+**Strategy:** ${ORCH_STRATEGY:-(your judgment)}
+$AGENT_PROFILE_SECTION"
+    fi
+  else
+    log "ORCHESTRATION: no result, fix-checker scans freely"
+  fi
+else
+  log "ORCHESTRATION: skipped (script or profiles dir missing)"
+fi
+
 # ── Build prompt ────────────────────────────────────────────────────
 
 PROMPT=$(cat "$PROMPT_TEMPLATE")
@@ -148,6 +213,7 @@ PROMPT="${PROMPT//\{\{SCRIPT_DIR\}\}/$SCRIPT_DIR}"
 PROMPT="${PROMPT//\{\{GUIDANCE_DIR\}\}/$GUIDANCE_DIR}"
 PROMPT="${PROMPT//\{\{DATE\}\}/$(date -u +%Y-%m-%d)}"
 PROMPT="${PROMPT//\{\{RUN_NUMBER\}\}/$RUN_NUMBER}"
+PROMPT="${PROMPT//\{\{AGENT_PROFILE\}\}/$AGENT_PROFILE_SECTION}"
 
 # ── Inject crash context if any ────────────────────────────────────
 

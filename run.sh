@@ -18,12 +18,14 @@ STATE_FILE="$SCRIPT_DIR/state.json"
 CLAUDE_BIN="${CLAUDE_BIN:-claude}"
 DRY_RUN=""
 FOCUS_REPO=""
+FOCUS_TASK=""
 
 # Parse args
 while [ $# -gt 0 ]; do
   case "$1" in
     --dry-run) DRY_RUN="--dry-run"; shift ;;
     --repo) FOCUS_REPO="$2"; shift 2 ;;
+    --task) FOCUS_TASK="$2"; shift 2 ;;
     *) shift ;;
   esac
 done
@@ -393,7 +395,21 @@ $FEATURE_IDEAS"
   fi
 fi
 
-log "START: Run #$RUN_NUMBER (repos: $(echo "$REPOS" | wc -w), cap threshold: $CAP_THRESHOLD%, feature_run: $FEATURE_RUN)"
+# Inject specific task directive if provided via --task
+if [ -n "$FOCUS_TASK" ]; then
+  PROMPT="$PROMPT
+
+## Directed Task
+
+**You have a specific task assigned for this run. This overrides the normal priority system.**
+
+**Task:** $FOCUS_TASK
+**Repo:** ${FOCUS_REPO:-(choose the most relevant repo for this task)}
+
+Complete this task, create a PR, and report results. All other rules (staging only, branch naming, testing, output format) still apply."
+fi
+
+log "START: Run #$RUN_NUMBER (repos: $(echo "$REPOS" | wc -w), cap threshold: $CAP_THRESHOLD%, feature_run: $FEATURE_RUN${FOCUS_TASK:+, task: $FOCUS_TASK})"
 
 if [ -n "$DRY_RUN" ]; then
   log "DRY RUN — prompt would be:"

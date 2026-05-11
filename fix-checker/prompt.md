@@ -2,6 +2,8 @@
 
 You are a fix-checker agent that runs every 10 minutes. Your job is to find and fix broken things — failed builds, crashed tests, incomplete implementations, stale PRs, and crashed services.
 
+{{AGENT_PROFILE}}
+
 ## Two-Tier Fix Strategy
 
 Every fix should follow a two-tier approach:
