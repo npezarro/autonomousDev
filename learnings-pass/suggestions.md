@@ -899,3 +899,23 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** Node 20 reached End of Life on April 30, 2026. 30+ repos still use `node-version: 20` in their CI workflows (e.g., botlink, promptlibrary, finance-tracker, groceryGenius, job-scraper, etc.). Only 6 repos have migrated to Node 22 (browser-logs, fb-marketplace-poster, reddit-referral-poster, url-vault, youtubeSpeedSetAndRemember, claude-tray-notifier). The testing.md guidance has been updated to Node 22, but existing repos need to be migrated.
 **Suggestion:** Add a "CI Node 22 migration" task to autonomousDev's standard run queue. Each run can update 2-3 repos: change `node-version: 20` to `node-version: 22` in CI workflows, run tests to verify compatibility, and push. Estimated 10-15 runs to complete the migration.
 **Priority:** MEDIUM — Node 20 is EOL, security patches no longer provided. No immediate breakage but the gap grows over time.
+
+---
+
+## 2026-05-10 — Learning Agent Run #530
+
+### S155: pre-push hook bug — new branch scan compares against working tree
+**File:** `agentGuidance/hooks/pre-push` (installed as `.git/hooks/pre-push`)
+**Issue:** For new branches (`REMOTE_SHA=000...`), the hook sets `RANGE="$LOCAL_SHA"` and runs `git diff "$RANGE"`. With a single SHA argument, `git diff` compares that commit against the working tree, not against the merge-base. This means dirty working tree files (e.g., modified profile experience.md files with sensitive security scan content) trigger false positives. Discovered during run #530 when pushing a clean 1-file branch.
+**Suggestion:** Change the new-branch range to `$(git merge-base main "$LOCAL_SHA")..$LOCAL_SHA` so only committed changes on the branch are scanned. Alternative: `git diff-tree -p "$LOCAL_SHA"` for single-commit scanning. The current workaround is `git stash` before push.
+**Priority:** LOW — Workaround exists (stash), but the false positives add friction to every push from a dirty working tree. Affects all public repos with the hook installed.
+
+---
+
+## 2026-05-11 — Learning Agent Run #536
+
+### S156: autonomousDev prompt.md still says "every 30 minutes"
+**File:** `autonomousDev/prompt.md` (line 1)
+**Issue:** The prompt opens with "You are an autonomous development agent running every 30 minutes." This was true before the May 8 frequency reduction but is now stale (actual: every 2 hours). The agent sees this text every run, which could subtly affect its time estimation and scope decisions.
+**Suggestion:** Change "every 30 minutes" to "every 2 hours" in prompt.md line 1. Minor, but the prompt should reflect reality to avoid scope miscalibration.
+**Priority:** LOW — cosmetic, but the prompt is the agent's primary self-context.
