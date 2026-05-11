@@ -298,6 +298,72 @@ if (( RUN_NUMBER % 2 == 0 )); then
   log "FEATURE RUN: Run #$RUN_NUMBER is a feature run (every 2nd run)"
 fi
 
+# ── Orchestration: select repo + agent profile(s) ────────────────────
+
+PROFILES_DIR="$HOME/repos/agentGuidance/profiles"
+AGENT_PROFILE_SECTION=""
+
+if [ -x "$SCRIPT_DIR/orchestrate.sh" ] && [ -d "$PROFILES_DIR" ]; then
+  # Write inputs to temp files (avoids arg-length limits and quoting issues)
+  ORCH_REPOS_TMP=$(mktemp)
+  ORCH_CTX_TMP=$(mktemp)
+  echo "$REPO_LIST" > "$ORCH_REPOS_TMP"
+  echo "$PRIOR_CONTEXT" > "$ORCH_CTX_TMP"
+
+  ORCH_ARGS=(
+    --repos-file "$ORCH_REPOS_TMP"
+    --context-file "$ORCH_CTX_TMP"
+    --profiles-dir "$PROFILES_DIR"
+  )
+  [ "$FEATURE_RUN" = true ] && ORCH_ARGS+=(--feature-run)
+  [ -n "$FOCUS_REPO" ] && ORCH_ARGS+=(--focus-repo "$FOCUS_REPO")
+
+  log "ORCHESTRATING: calling orchestrate.sh..."
+  ORCH_JSON=$("$SCRIPT_DIR/orchestrate.sh" "${ORCH_ARGS[@]}" 2>/dev/null || echo "")
+  rm -f "$ORCH_REPOS_TMP" "$ORCH_CTX_TMP"
+
+  if [ -n "$ORCH_JSON" ] && echo "$ORCH_JSON" | jq -e '.repo' >/dev/null 2>&1; then
+    ORCH_REPO=$(echo "$ORCH_JSON" | jq -r '.repo // ""')
+    ORCH_PROFILES=$(echo "$ORCH_JSON" | jq -r '.profiles[]' 2>/dev/null || echo "")
+    ORCH_STRATEGY=$(echo "$ORCH_JSON" | jq -r '.strategy // ""')
+
+    log "ORCHESTRATION: repo=$ORCH_REPO profiles=$(echo $ORCH_PROFILES | tr '\n' ',') strategy=$ORCH_STRATEGY"
+
+    # Load selected profile(s) into prompt section
+    for profile_key in $ORCH_PROFILES; do
+      PROFILE_FILE="$PROFILES_DIR/$profile_key/profile.md"
+      EXPERIENCE_FILE="$PROFILES_DIR/$profile_key/experience.md"
+      if [ -f "$PROFILE_FILE" ]; then
+        AGENT_PROFILE_SECTION="$AGENT_PROFILE_SECTION
+---
+$(cat "$PROFILE_FILE")"
+        if [ -f "$EXPERIENCE_FILE" ]; then
+          RECENT_EXP=$(tail -30 "$EXPERIENCE_FILE" 2>/dev/null || echo "")
+          [ -n "$RECENT_EXP" ] && AGENT_PROFILE_SECTION="$AGENT_PROFILE_SECTION
+
+### Recent Experience
+$RECENT_EXP"
+        fi
+      fi
+    done
+
+    # Build the full profile section with header and strategy
+    if [ -n "$AGENT_PROFILE_SECTION" ]; then
+      AGENT_PROFILE_SECTION="## Agent Profile
+
+You are operating with the following specialist perspective(s). Apply this expertise and working style to all decisions this session.
+
+**Recommended repo:** ${ORCH_REPO:-(your choice)}
+**Strategy:** ${ORCH_STRATEGY:-(your judgment)}
+$AGENT_PROFILE_SECTION"
+    fi
+  else
+    log "ORCHESTRATION: no result, agent picks freely"
+  fi
+else
+  log "ORCHESTRATION: skipped (script or profiles dir missing)"
+fi
+
 # ── Build prompt ─────────────────────────────────────────────────────
 
 PROMPT=$(cat "$PROMPT_TEMPLATE")
@@ -309,6 +375,7 @@ PROMPT="${PROMPT//\{\{SCRIPT_DIR\}\}/$SCRIPT_DIR}"
 PROMPT="${PROMPT//\{\{DATE\}\}/$(date -u +%Y-%m-%d)}"
 PROMPT="${PROMPT//\{\{RUN_NUMBER\}\}/$RUN_NUMBER}"
 PROMPT="${PROMPT//\{\{FEATURE_RUN\}\}/$FEATURE_RUN}"
+PROMPT="${PROMPT//\{\{AGENT_PROFILE\}\}/$AGENT_PROFILE_SECTION}"
 
 # Inject feature ideas context on feature runs
 if [ "$FEATURE_RUN" = true ] && [ -d "$SCRIPT_DIR/context" ]; then
@@ -411,6 +478,43 @@ LINES_CHANGED=$(echo "$RESULT" | grep -oP 'LINES_CHANGED:\s*\K\d+' | head -1 || 
 RESULT_REPO=$(echo "$RESULT" | grep -oP 'REPO:\s*\K\S+' | head -1 || echo "unknown")
 RESULT_PR=$(echo "$RESULT" | grep -oP 'PR:\s*#\K\d+' | head -1 || echo "0")
 
+# ── Post-agent verification: independent build/test check ────────────
+
+VERIFY_STATUS="skip"
+VERIFY_DETAIL=""
+
+if [ $EXIT_CODE -eq 0 ] && [ "${RESULT_PR:-0}" != "0" ] && [ "$RESULT_REPO" != "unknown" ]; then
+  if [ -x "$SCRIPT_DIR/verify.sh" ]; then
+    log "VERIFY: checking PR #$RESULT_PR in $RESULT_REPO..."
+    VERIFY_OUTPUT=$("$SCRIPT_DIR/verify.sh" "$REPOS_ROOT" "$RESULT_REPO" "$RESULT_PR" 2>&1 || true)
+
+    # Parse the last line for status
+    VERIFY_LAST=$(echo "$VERIFY_OUTPUT" | tail -1)
+    if echo "$VERIFY_LAST" | grep -q "^VERIFY_PASS"; then
+      VERIFY_STATUS="pass"
+      VERIFY_DETAIL=$(echo "$VERIFY_LAST" | sed 's/^VERIFY_PASS: //')
+      log "VERIFY: PASS ($VERIFY_DETAIL)"
+    elif echo "$VERIFY_LAST" | grep -q "^VERIFY_FAIL"; then
+      VERIFY_STATUS="fail"
+      VERIFY_DETAIL=$(echo "$VERIFY_LAST" | sed 's/^VERIFY_FAIL: //')
+      log "VERIFY: FAIL ($VERIFY_DETAIL)"
+      # Add failure comment to the PR
+      gh pr comment "$RESULT_PR" \
+        --repo "$(cd "$REPOS_ROOT/$RESULT_REPO" && gh repo view --json nameWithOwner -q '.nameWithOwner' 2>/dev/null || echo "")" \
+        --body "**Automated Verification Failed**
+
+Post-agent build/test check detected failures:
+\`$VERIFY_DETAIL\`
+
+This PR needs fixes before merge. The agent's own testing may have missed this." 2>/dev/null || true
+    else
+      VERIFY_STATUS="skip"
+      VERIFY_DETAIL=$(echo "$VERIFY_LAST" | sed 's/^VERIFY_SKIP: //')
+      log "VERIFY: SKIP ($VERIFY_DETAIL)"
+    fi
+  fi
+fi
+
 jq -n \
   --argjson run "$RUN_NUMBER" \
   --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
@@ -422,7 +526,9 @@ jq -n \
   --argjson exit_code "$EXIT_CODE" \
   --arg cost "$COST" \
   --argjson feature_run "$( [ "$FEATURE_RUN" = true ] && echo true || echo false )" \
-  '{run: $run, timestamp: $ts, run_type: $run_type, repo: $repo, pr: $pr, files_changed: $files, lines_changed: $lines, exit_code: $exit_code, cost: $cost, feature_run: $feature_run}' \
+  --arg verify "$VERIFY_STATUS" \
+  --arg verify_detail "$VERIFY_DETAIL" \
+  '{run: $run, timestamp: $ts, run_type: $run_type, repo: $repo, pr: $pr, files_changed: $files, lines_changed: $lines, exit_code: $exit_code, cost: $cost, feature_run: $feature_run, verify: $verify, verify_detail: $verify_detail}' \
   >> "$OUTCOME_LOG" 2>/dev/null || true
 
 # ── Post to agent journal ────────────────────────────────────────────
@@ -458,14 +564,28 @@ if [ $EXIT_CODE -eq 0 ]; then
 
 ${RESULT:0:1800}"
 
-  # Post PR review requests to #autonomous-dev-merges if any
+  # Post PR review requests to #autonomous-dev-merges (gated on verification)
   PR_REVIEW=$(echo "$RESULT" | sed -n '/PR_FOR_REVIEW:/,/^$/p' | head -20)
   if [ -n "$PR_REVIEW" ]; then
-    post_to_discord "$AUTONOMOUS_MERGES_WEBHOOK" "**Run #$RUN_NUMBER — PR For Review**
+    if [ "$VERIFY_STATUS" = "fail" ]; then
+      # Verification failed: post to main channel as warning, not merges
+      post_to_discord "$AUTONOMOUS_DEV_WEBHOOK" "**Run #$RUN_NUMBER — PR Created but Verification FAILED**
 
 $PR_REVIEW
 
+Verification: \`$VERIFY_DETAIL\`
+PR needs fixes before it can be merged. A comment has been added to the PR."
+    else
+      # Verification passed or skipped: post to merges channel as normal
+      VERIFY_NOTE=""
+      [ "$VERIFY_STATUS" = "pass" ] && VERIFY_NOTE="
+Verified: \`$VERIFY_DETAIL\`"
+      post_to_discord "$AUTONOMOUS_MERGES_WEBHOOK" "**Run #$RUN_NUMBER — PR For Review**
+
+$PR_REVIEW
+$VERIFY_NOTE
 React with :white_check_mark: to approve and merge this PR."
+    fi
   fi
 
   # Post scan-only proposals to #autonomous-dev-merges if any
