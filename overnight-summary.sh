@@ -254,7 +254,7 @@ post_to_discord() {
   local payload
   payload=$(jq -n --arg content "$msg" '{"username": "Overnight Summary", "content": $content}')
   local response
-  response=$(curl -s -X POST "$webhook" \
+  response=$(curl -s -X POST "${webhook}?wait=true" \
     -H "Content-Type: application/json" \
     -d "$payload" 2>/dev/null || echo "")
   # Extract message ID for threading
