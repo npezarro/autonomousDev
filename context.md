@@ -1,10 +1,11 @@
 # context.md
 
 ## Last Updated
-2026-05-11 — Fix-checker orchestration + on-demand `!code` dispatch via Discord
+2026-05-12 — Multi-model pipeline: Gemini codes, CC reviews, Gemini pre-deploy review
 
 ## Current State
 - **auto-dev** is the autonomous agent runner, executing cron-based jobs on the GCP VM
+- **Multi-model pipeline** (added 2026-05-12): Gemini CLI does the coding, Claude Code reviews
 - Three active jobs:
   - `auto-dev/` (main pass): runs every 30min at :00/:30, usage gate 75%
   - `learnings-pass/`: runs hourly at :43, usage gate 90%
@@ -24,12 +25,24 @@
 - Discord command `!code <repo> <task>` triggers this from any channel
 - Full pipeline runs: orchestration -> execution -> verification -> Discord reporting
 
-### Post-Agent Verification (added 2026-05-11)
-- **Post-agent**: `verify.sh` checks out the PR branch, runs `npm run build` + `npm test` independently
-- On FAIL: PR gets a comment, warning posted to #autonomous-dev (not merges), PR blocked from merge channel
-- On PASS: verification status shown in merges channel post ("Verified: build:pass test:pass")
-- On SKIP: no build/test scripts found, treated as pass
-- Verification result tracked in `outcomes.jsonl` (`verify` + `verify_detail` fields)
+### Multi-Model Pipeline (added 2026-05-12)
+Each run now executes 4 phases:
+1. **Phase 1 — Gemini Coding**: Gemini CLI (`--yolo`) does the actual development work, creates branch + PR
+2. **Phase 2 — Build/Test Verification**: `verify.sh` checks out the PR branch, runs `npm run build` + `npm test`
+3. **Phase 3 — CC Code Review**: `review.sh` feeds the diff to Claude Code (Sonnet) for bug/security review
+4. **Phase 4 — Gemini Pre-Deploy Review**: `pre-deploy-review.sh` has Gemini review the final diff for production safety
+
+**Gating logic:**
+- Phase 2 failure: PR blocked, warning posted to #autonomous-dev
+- Phase 3 failure: PR blocked with CC review comment on the PR
+- Phase 4 only runs if phases 2+3 pass; failure blocks the PR
+- Concerns (non-blocking) from phases 3+4 are shown in the merge channel post
+- All phase results tracked in `outcomes.jsonl`
+
+**Why Gemini codes, CC reviews:**
+- Gemini CLI uses free GCA auth (1K req/day), reducing Claude usage budget impact
+- Cross-model review catches bugs that same-model self-review misses
+- Pre-deploy review adds a second-opinion safety net before merge approval
 
 ### Priority System (updated 2026-04-07)
 - **Feature runs** now fire every 2nd run (was every 5th) — 50% of runs are feature-focused

@@ -15,6 +15,7 @@ LOGS_DIR="$SCRIPT_DIR/logs"
 LOCK_FILE="$SCRIPT_DIR/.running.lock"
 STATE_FILE="$SCRIPT_DIR/state.json"
 
+GEMINI_BIN="${GEMINI_BIN:-gemini}"
 CLAUDE_BIN="${CLAUDE_BIN:-claude}"
 DRY_RUN=""
 FOCUS_REPO=""
@@ -409,7 +410,7 @@ if [ -n "$FOCUS_TASK" ]; then
 Complete this task, create a PR, and report results. All other rules (staging only, branch naming, testing, output format) still apply."
 fi
 
-log "START: Run #$RUN_NUMBER (repos: $(echo "$REPOS" | wc -w), cap threshold: $CAP_THRESHOLD%, feature_run: $FEATURE_RUN${FOCUS_TASK:+, task: $FOCUS_TASK})"
+log "START: Run #$RUN_NUMBER (Gemini+CC, repos: $(echo "$REPOS" | wc -w), feature_run: $FEATURE_RUN${FOCUS_TASK:+, task: $FOCUS_TASK})"
 
 if [ -n "$DRY_RUN" ]; then
   log "DRY RUN — prompt would be:"
@@ -417,32 +418,35 @@ if [ -n "$DRY_RUN" ]; then
   exit 0
 fi
 
-# ── Pre-flight: verify Claude auth ───────────────────────────────────
+# ── Pre-flight: verify Gemini auth ───────────────────────────────────
 
-AUTH_CHECK=$(echo "Say: OK" | "$CLAUDE_BIN" -p 2>&1)
-if echo "$AUTH_CHECK" | grep -qi "authentication_failed\|does not have access\|login again"; then
-  log "SKIP: Claude auth failed — token may have expired. Run 'claude' interactively to re-auth."
+AUTH_CHECK=$(timeout 30 "$GEMINI_BIN" -p "Say: OK" 2>&1 || echo "auth_failed")
+if echo "$AUTH_CHECK" | grep -qi "auth.*fail\|not authenticated\|login\|credential\|UNAUTHENTICATED"; then
+  log "SKIP: Gemini auth failed — run 'gemini' interactively to re-auth."
   write_state "$(jq -n \
     --argjson num "$RUN_NUMBER" \
     --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-    '{run_number: $num, last_run: $ts, last_exit_code: 1, last_cost: "$0", last_error: "auth_failed"}')"
+    '{run_number: $num, last_run: $ts, last_exit_code: 1, last_cost: "$0", last_error: "gemini_auth_failed"}')"
   exit 1
 fi
 
-# ── Run Claude ───────────────────────────────────────────────────────
+# ── Phase 1: Run Gemini (coding) ─────────────────────────────────────
 
 RUN_LOG="$LOGS_DIR/run-$(date -u +%Y%m%d-%H%M%S).log"
 touch "$RUN_LOG" && chmod 600 "$RUN_LOG"
 
-timeout 2700 "$CLAUDE_BIN" \
-  -p \
-  --dangerously-skip-permissions \
-  --verbose \
-  --output-format stream-json \
-  <<< "$PROMPT" \
+# Write prompt to temp file to avoid shell argument length limits
+PROMPT_FILE=$(mktemp)
+printf '%s' "$PROMPT" > "$PROMPT_FILE"
+
+log "PHASE 1: Gemini coding pass starting..."
+timeout 2700 "$GEMINI_BIN" \
+  --yolo \
+  -p "$(< "$PROMPT_FILE")" \
   > "$RUN_LOG" 2>&1
 
 EXIT_CODE=$?
+rm -f "$PROMPT_FILE"
 
 # Handle timeout (exit code 124)
 if [ $EXIT_CODE -eq 124 ]; then
@@ -454,17 +458,20 @@ cp "$RUN_LOG" "$LAST_RUN_LOG" 2>/dev/null || true
 
 # ── Extract result ───────────────────────────────────────────────────
 
-# Parse NDJSON log for the result line
+# Try stream-json parsing first (works if Gemini used -o stream-json)
 RESULT=$(grep -m1 '"type":"result"' "$RUN_LOG" 2>/dev/null \
-  | jq -r '.result // "No result extracted"' 2>/dev/null \
+  | jq -r '.result // ""' 2>/dev/null \
   | head -c 2000 \
-  || echo "No result extracted")
+  || echo "")
 
-COST=$(grep '"type":"result"' "$RUN_LOG" 2>/dev/null \
-  | jq -r 'select(.total_cost_usd) | "$\(.total_cost_usd | tostring | .[0:6])"' 2>/dev/null \
-  | tail -1 \
-  || echo "unknown")
-[ -z "$COST" ] && COST="unknown"
+# Fallback: extract from plain text output (grep structured output blocks)
+if [ -z "$RESULT" ] || [ "$RESULT" = "null" ]; then
+  # Extract the last 200 lines which should contain the structured summary
+  RESULT=$(tail -200 "$RUN_LOG" 2>/dev/null | head -c 2000 || echo "No result extracted")
+fi
+
+# Gemini with free GCA auth has no cost tracking
+COST="$0 (Gemini)"
 
 # ── Update state (atomic write) ─────────────────────────────────────
 
@@ -478,10 +485,10 @@ write_state "$(jq -n \
 # ── Log result ───────────────────────────────────────────────────────
 
 if [ $EXIT_CODE -eq 0 ]; then
-  log "DONE: Run #$RUN_NUMBER completed (cost: $COST)"
+  log "PHASE 1 DONE: Gemini coding pass completed"
   log "Result preview: ${RESULT:0:200}"
 else
-  log "FAIL: Run #$RUN_NUMBER exited with code $EXIT_CODE (cost: $COST)"
+  log "PHASE 1 FAIL: Gemini exited with code $EXIT_CODE"
 fi
 
 # ── Outcome tracking ─────────────────────────────────────────────
@@ -501,7 +508,7 @@ VERIFY_DETAIL=""
 
 if [ $EXIT_CODE -eq 0 ] && [ "${RESULT_PR:-0}" != "0" ] && [ "$RESULT_REPO" != "unknown" ]; then
   if [ -x "$SCRIPT_DIR/verify.sh" ]; then
-    log "VERIFY: checking PR #$RESULT_PR in $RESULT_REPO..."
+    log "PHASE 2: Build/test verification of PR #$RESULT_PR in $RESULT_REPO..."
     VERIFY_OUTPUT=$("$SCRIPT_DIR/verify.sh" "$REPOS_ROOT" "$RESULT_REPO" "$RESULT_PR" 2>&1 || true)
 
     # Parse the last line for status
@@ -531,6 +538,77 @@ This PR needs fixes before merge. The agent's own testing may have missed this."
   fi
 fi
 
+# ── Phase 3: Claude Code review of Gemini's PR ────────────────────────
+
+CC_REVIEW_STATUS="skip"
+CC_REVIEW_DETAIL=""
+
+if [ $EXIT_CODE -eq 0 ] && [ "${RESULT_PR:-0}" != "0" ] && [ "$RESULT_REPO" != "unknown" ]; then
+  if [ -x "$SCRIPT_DIR/review.sh" ]; then
+    log "PHASE 3: Claude Code reviewing PR #$RESULT_PR in $RESULT_REPO..."
+    CC_REVIEW_OUTPUT=$("$SCRIPT_DIR/review.sh" "$REPOS_ROOT" "$RESULT_REPO" "$RESULT_PR" 2>&1 || true)
+
+    CC_REVIEW_LAST=$(echo "$CC_REVIEW_OUTPUT" | tail -1)
+    if echo "$CC_REVIEW_LAST" | grep -q "^REVIEW_PASS"; then
+      CC_REVIEW_STATUS="pass"
+      CC_REVIEW_DETAIL=$(echo "$CC_REVIEW_LAST" | sed 's/^REVIEW_PASS: //')
+      log "CC REVIEW: PASS ($CC_REVIEW_DETAIL)"
+    elif echo "$CC_REVIEW_LAST" | grep -q "^REVIEW_FAIL"; then
+      CC_REVIEW_STATUS="fail"
+      CC_REVIEW_DETAIL=$(echo "$CC_REVIEW_LAST" | sed 's/^REVIEW_FAIL: //')
+      log "CC REVIEW: FAIL ($CC_REVIEW_DETAIL)"
+      # Add review failure comment to the PR
+      gh pr comment "$RESULT_PR" \
+        --repo "$(cd "$REPOS_ROOT/$RESULT_REPO" && gh repo view --json nameWithOwner -q '.nameWithOwner' 2>/dev/null || echo "")" \
+        --body "**Claude Code Review — Issues Found**
+
+Code review detected potential issues:
+\`$CC_REVIEW_DETAIL\`
+
+This PR needs attention before merge." 2>/dev/null || true
+    elif echo "$CC_REVIEW_LAST" | grep -q "^REVIEW_CONCERNS"; then
+      CC_REVIEW_STATUS="concerns"
+      CC_REVIEW_DETAIL=$(echo "$CC_REVIEW_LAST" | sed 's/^REVIEW_CONCERNS: //')
+      log "CC REVIEW: CONCERNS ($CC_REVIEW_DETAIL)"
+    else
+      CC_REVIEW_STATUS="skip"
+      CC_REVIEW_DETAIL=$(echo "$CC_REVIEW_LAST" | sed 's/^REVIEW_SKIP: //')
+      log "CC REVIEW: SKIP ($CC_REVIEW_DETAIL)"
+    fi
+  fi
+fi
+
+# ── Phase 4: Gemini pre-deploy review ─────────────────────────────────
+
+PREDEPLOY_STATUS="skip"
+PREDEPLOY_DETAIL=""
+
+if [ $EXIT_CODE -eq 0 ] && [ "${RESULT_PR:-0}" != "0" ] && [ "$RESULT_REPO" != "unknown" ] \
+   && [ "$VERIFY_STATUS" != "fail" ] && [ "$CC_REVIEW_STATUS" != "fail" ]; then
+  if [ -x "$SCRIPT_DIR/pre-deploy-review.sh" ]; then
+    log "PHASE 4: Gemini pre-deploy review of PR #$RESULT_PR..."
+    PREDEPLOY_OUTPUT=$("$SCRIPT_DIR/pre-deploy-review.sh" "$REPOS_ROOT" "$RESULT_REPO" "$RESULT_PR" 2>&1 || true)
+
+    PREDEPLOY_LAST=$(echo "$PREDEPLOY_OUTPUT" | tail -1)
+    if echo "$PREDEPLOY_LAST" | grep -q "^PREDEPLOY_PASS"; then
+      PREDEPLOY_STATUS="pass"
+      PREDEPLOY_DETAIL=$(echo "$PREDEPLOY_LAST" | sed 's/^PREDEPLOY_PASS: //')
+      log "PRE-DEPLOY: PASS ($PREDEPLOY_DETAIL)"
+    elif echo "$PREDEPLOY_LAST" | grep -q "^PREDEPLOY_FAIL"; then
+      PREDEPLOY_STATUS="fail"
+      PREDEPLOY_DETAIL=$(echo "$PREDEPLOY_LAST" | sed 's/^PREDEPLOY_FAIL: //')
+      log "PRE-DEPLOY: FAIL ($PREDEPLOY_DETAIL)"
+    elif echo "$PREDEPLOY_LAST" | grep -q "^PREDEPLOY_CONCERNS"; then
+      PREDEPLOY_STATUS="concerns"
+      PREDEPLOY_DETAIL=$(echo "$PREDEPLOY_LAST" | sed 's/^PREDEPLOY_CONCERNS: //')
+      log "PRE-DEPLOY: CONCERNS ($PREDEPLOY_DETAIL)"
+    else
+      PREDEPLOY_STATUS="skip"
+      log "PRE-DEPLOY: SKIP"
+    fi
+  fi
+fi
+
 jq -n \
   --argjson run "$RUN_NUMBER" \
   --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
@@ -544,7 +622,11 @@ jq -n \
   --argjson feature_run "$( [ "$FEATURE_RUN" = true ] && echo true || echo false )" \
   --arg verify "$VERIFY_STATUS" \
   --arg verify_detail "$VERIFY_DETAIL" \
-  '{run: $run, timestamp: $ts, run_type: $run_type, repo: $repo, pr: $pr, files_changed: $files, lines_changed: $lines, exit_code: $exit_code, cost: $cost, feature_run: $feature_run, verify: $verify, verify_detail: $verify_detail}' \
+  --arg cc_review "$CC_REVIEW_STATUS" \
+  --arg cc_review_detail "$CC_REVIEW_DETAIL" \
+  --arg predeploy "$PREDEPLOY_STATUS" \
+  --arg predeploy_detail "$PREDEPLOY_DETAIL" \
+  '{run: $run, timestamp: $ts, run_type: $run_type, repo: $repo, pr: $pr, files_changed: $files, lines_changed: $lines, exit_code: $exit_code, cost: $cost, feature_run: $feature_run, verify: $verify, verify_detail: $verify_detail, cc_review: $cc_review, cc_review_detail: $cc_review_detail, predeploy: $predeploy, predeploy_detail: $predeploy_detail}' \
   >> "$OUTCOME_LOG" 2>/dev/null || true
 
 # ── Post to agent journal ────────────────────────────────────────────
@@ -576,30 +658,51 @@ if [ -z "$AUTONOMOUS_DEV_WEBHOOK" ]; then
 fi
 
 if [ $EXIT_CODE -eq 0 ]; then
-  post_to_discord "$AUTONOMOUS_DEV_WEBHOOK" "**Run #$RUN_NUMBER completed** (cost: $COST)
+  post_to_discord "$AUTONOMOUS_DEV_WEBHOOK" "**Run #$RUN_NUMBER completed** (Gemini coded, CC reviewed)
 
 ${RESULT:0:1800}"
 
-  # Post PR review requests to #autonomous-dev-merges (gated on verification)
+  # Post PR review requests to #autonomous-dev-merges (gated on all checks)
   PR_REVIEW=$(echo "$RESULT" | sed -n '/PR_FOR_REVIEW:/,/^$/p' | head -20)
   if [ -n "$PR_REVIEW" ]; then
+    # Determine if any phase blocked the PR
+    BLOCKED=false
+    BLOCK_REASON=""
     if [ "$VERIFY_STATUS" = "fail" ]; then
-      # Verification failed: post to main channel as warning, not merges
-      post_to_discord "$AUTONOMOUS_DEV_WEBHOOK" "**Run #$RUN_NUMBER — PR Created but Verification FAILED**
+      BLOCKED=true
+      BLOCK_REASON="Build/test verification failed: \`$VERIFY_DETAIL\`"
+    elif [ "$CC_REVIEW_STATUS" = "fail" ]; then
+      BLOCKED=true
+      BLOCK_REASON="CC code review found blocking issues: \`$CC_REVIEW_DETAIL\`"
+    elif [ "$PREDEPLOY_STATUS" = "fail" ]; then
+      BLOCKED=true
+      BLOCK_REASON="Pre-deploy review found blocking issues: \`$PREDEPLOY_DETAIL\`"
+    fi
+
+    if [ "$BLOCKED" = true ]; then
+      post_to_discord "$AUTONOMOUS_DEV_WEBHOOK" "**Run #$RUN_NUMBER — PR Created but BLOCKED**
 
 $PR_REVIEW
 
-Verification: \`$VERIFY_DETAIL\`
-PR needs fixes before it can be merged. A comment has been added to the PR."
+$BLOCK_REASON
+PR needs fixes before it can be merged."
     else
-      # Verification passed or skipped: post to merges channel as normal
-      VERIFY_NOTE=""
-      [ "$VERIFY_STATUS" = "pass" ] && VERIFY_NOTE="
-Verified: \`$VERIFY_DETAIL\`"
-      post_to_discord "$AUTONOMOUS_MERGES_WEBHOOK" "**Run #$RUN_NUMBER — PR For Review**
+      # Build status line with all phases
+      STATUS_LINE=""
+      [ "$VERIFY_STATUS" = "pass" ] && STATUS_LINE="Build: \`$VERIFY_DETAIL\`"
+      [ -n "$CC_REVIEW_DETAIL" ] && STATUS_LINE="$STATUS_LINE | CC Review: \`$CC_REVIEW_STATUS\`"
+      [ -n "$PREDEPLOY_DETAIL" ] && STATUS_LINE="$STATUS_LINE | Pre-deploy: \`$PREDEPLOY_STATUS\`"
+
+      CONCERNS_NOTE=""
+      [ "$CC_REVIEW_STATUS" = "concerns" ] && CONCERNS_NOTE="
+CC review note: $CC_REVIEW_DETAIL"
+      [ "$PREDEPLOY_STATUS" = "concerns" ] && CONCERNS_NOTE="$CONCERNS_NOTE
+Pre-deploy note: $PREDEPLOY_DETAIL"
+
+      post_to_discord "$AUTONOMOUS_MERGES_WEBHOOK" "**Run #$RUN_NUMBER — PR For Review** (Gemini + CC)
 
 $PR_REVIEW
-$VERIFY_NOTE
+${STATUS_LINE:+$STATUS_LINE}$CONCERNS_NOTE
 React with :white_check_mark: to approve and merge this PR."
     fi
   fi
