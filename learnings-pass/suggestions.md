@@ -919,3 +919,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** The prompt opens with "You are an autonomous development agent running every 30 minutes." This was true before the May 8 frequency reduction but is now stale (actual: every 2 hours). The agent sees this text every run, which could subtly affect its time estimation and scope decisions.
 **Suggestion:** Change "every 30 minutes" to "every 2 hours" in prompt.md line 1. Minor, but the prompt should reflect reality to avoid scope miscalibration.
 **Priority:** LOW — cosmetic, but the prompt is the agent's primary self-context.
+
+---
+
+## 2026-05-12 — Learning Agent Run #537
+
+### S157: config.json has 4 phantom repos and is missing job-pipeline
+**File:** `config.json` (repos array)
+**Issue:** Four repos in the config don't exist on disk: `llm-tasks-cleanup`, `context-mgmt`, `shorts-automation`, `social-tools`. These waste selection cycles. Additionally, the recently split `job-pipeline` repo (May 11) is not in the config, so it won't receive autonomous maintenance. The standalone `job-scraper` is still listed but its content now lives as a subdirectory of `job-pipeline` (with divergent, older code).
+**Suggestion:** Remove the 4 phantom repos. Replace `job-scraper` with `job-pipeline`. Verify whether the standalone `job-scraper` repo should be archived or if it's the canonical version.
+**Priority:** MEDIUM — phantom repos waste cycles; missing job-pipeline means no automated maintenance.
