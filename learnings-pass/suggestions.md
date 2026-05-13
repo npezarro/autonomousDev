@@ -919,3 +919,19 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** The prompt opens with "You are an autonomous development agent running every 30 minutes." This was true before the May 8 frequency reduction but is now stale (actual: every 2 hours). The agent sees this text every run, which could subtly affect its time estimation and scope decisions.
 **Suggestion:** Change "every 30 minutes" to "every 2 hours" in prompt.md line 1. Minor, but the prompt should reflect reality to avoid scope miscalibration.
 **Priority:** LOW — cosmetic, but the prompt is the agent's primary self-context.
+
+---
+
+## 2026-05-13 — Learning Agent Run #544
+
+### S158: agent.md line 48 still says "Large outputs" after May 12 correction
+**File:** `agentGuidance/agent.md` (line 48)
+**Issue:** Line 48 says "**Large outputs go to files.**" but this was broadened on May 12 to "ALL substantive outputs" (updated in discord-integration.md and memory). agent.md is the primary instruction file loaded by all sessions, so the stale wording means most sessions still see the old, narrower rule.
+**Suggestion:** Change "**Large outputs go to files.**" to "**All substantive outputs go to files.**" in agent.md line 48. Align with the corrected language in discord-integration.md.
+**Priority:** LOW — discord-integration.md has the correct version, but agent.md is always loaded while discord-integration.md is on-demand.
+
+### S159: shopper and chrome-automation repos have no CLAUDE.md
+**File:** `shopper/CLAUDE.md` (missing), `chrome-automation/CLAUDE.md` (missing)
+**Issue:** Both repos had 20+ and 8+ commits respectively since creation (May 12), including OAuth flows, rate limiting, modular extension system, and Docker bridge. Neither has a CLAUDE.md. This violates ESSENTIAL rule #7 (Update CLAUDE.md When Adding Features). The shopper OAuth chain went through 3 failed approaches before landing on auth-proxy, likely because no CLAUDE.md pointed the session to auth-basepath.md.
+**Suggestion:** autonomousDev should prioritize creating CLAUDE.md for repos with >5 commits and no documentation. Alternatively, add a fix-checker pass that flags repos without CLAUDE.md.
+**Priority:** MEDIUM — undocumented repos cause agents to repeat mistakes (the shopper OAuth chain is direct evidence).
