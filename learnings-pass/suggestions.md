@@ -919,3 +919,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** The prompt opens with "You are an autonomous development agent running every 30 minutes." This was true before the May 8 frequency reduction but is now stale (actual: every 2 hours). The agent sees this text every run, which could subtly affect its time estimation and scope decisions.
 **Suggestion:** Change "every 30 minutes" to "every 2 hours" in prompt.md line 1. Minor, but the prompt should reflect reality to avoid scope miscalibration.
 **Priority:** LOW — cosmetic, but the prompt is the agent's primary self-context.
+
+---
+
+## 2026-05-11 — Learning Agent Run #537
+
+### S157: autonomousDev config.json has phantom repos and missing active repos
+**File:** `autonomousDev/config.json`
+**Issue:** The repos array lists repos that may no longer exist or are archived (e.g., ChatGPTCompletionChime, GOGAutoRdeem, GeminiCompletionChime, llm-tasks-cleanup, auto-shorts-worker, claude-session-logs, context-mgmt, shorts-automation, social-tools, waymo-sim). Meanwhile, many actively developed repos are missing: job-pipeline, finance-tracker, health-hub, nll-hunter, deal-scout, browser-agent, url-vault, trading-agent, buying-assistant, travel-assistant, shopper, chrome-automation, portfolio, slay-the-spire-roblox, claude-tray-notifier.
+**Suggestion:** Audit config.json against actual ~/repos/ contents. Remove phantom repos, add active ones. Use `ls ~/repos/` cross-referenced with recent git activity to build an accurate list.
+**Priority:** MEDIUM — autonomousDev runs every 2 hours and wastes orchestration time considering repos that don't exist while ignoring repos with real improvement opportunities.
