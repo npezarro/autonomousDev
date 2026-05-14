@@ -308,6 +308,14 @@ else
   log "FAIL: Fix-checker run #$RUN_NUMBER exited with code $EXIT_CODE (cost: $COST)"
 fi
 
+# ── Score this session ──────────────────────────────────────────────
+
+SCORER="$PARENT_DIR/supervisor/score.sh"
+if [ -x "$SCORER" ] && [ $EXIT_CODE -eq 0 ] && [ -f "$RUN_LOG" ]; then
+  log "Scoring fix-checker session..."
+  "$SCORER" --agent-type fix-checker --run-log "$RUN_LOG" 2>&1 | tail -1 | while read -r line; do log "SCORE: $line"; done || true
+fi
+
 # ── Post to Discord #work-log ───────────────────────────────────────
 
 post_to_work_log() {

@@ -17,3 +17,11 @@ repos.conf
 config.json
 fix-checker/process-map.conf
 .claude/
+supervisor/scores/
+supervisor/logs/
+supervisor/state.json
+supervisor/.running.lock
+supervisor/.env
+learnings-pass/logs/
+learnings-pass/state.json
+learnings-pass/.running.lock

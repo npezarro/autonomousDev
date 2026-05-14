@@ -629,6 +629,15 @@ jq -n \
   '{run: $run, timestamp: $ts, run_type: $run_type, repo: $repo, pr: $pr, files_changed: $files, lines_changed: $lines, exit_code: $exit_code, cost: $cost, feature_run: $feature_run, verify: $verify, verify_detail: $verify_detail, cc_review: $cc_review, cc_review_detail: $cc_review_detail, predeploy: $predeploy, predeploy_detail: $predeploy_detail}' \
   >> "$OUTCOME_LOG" 2>/dev/null || true
 
+# ── Phase 5: Ecosystem Supervisor scoring ────────────────────────────
+
+SCORER="$SCRIPT_DIR/supervisor/score.sh"
+if [ -x "$SCORER" ] && [ $EXIT_CODE -eq 0 ] && [ -f "$RUN_LOG" ]; then
+  log "PHASE 5: Scoring session against ESSENTIAL rules..."
+  SCORE_OUTPUT=$("$SCORER" --agent-type autonomous-dev --run-log "$RUN_LOG" 2>&1 || true)
+  log "SCORE: $SCORE_OUTPUT"
+fi
+
 # ── Post to agent journal ────────────────────────────────────────────
 
 JOURNAL_SCRIPT="$HOME/repos/privateContext/journal-post.sh"
