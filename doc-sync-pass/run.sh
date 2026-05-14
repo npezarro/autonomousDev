@@ -287,6 +287,43 @@ if [ -x "$JOURNAL_SCRIPT" ] && [ $EXIT_CODE -eq 0 ] && [ "$REPOS_WITH_DRIFT" != 
   "$JOURNAL_SCRIPT" "discovery" "doc-sync run #$RUN_NUMBER: $JOURNAL_SUMMARY" || true
 fi
 
+# ── Log to comparison JSONL (for Claude vs Gemini shadow test) ──────
+
+COMPARISON_LOG="$PARENT_DIR/logs/claude-comparison.jsonl"
+mkdir -p "$(dirname "$COMPARISON_LOG")"
+
+RUN_START=$(head -1 "$RUN_LOG" 2>/dev/null | python3 -c "import json,sys; d=json.loads(sys.stdin.read().strip()); print(d.get('timestamp',''))" 2>/dev/null || echo "")
+RUN_END=$(grep '"type":"result"' "$RUN_LOG" 2>/dev/null | tail -1 | python3 -c "import json,sys; d=json.loads(sys.stdin.read().strip()); print(d.get('timestamp',''))" 2>/dev/null || echo "")
+RUN_DURATION=0
+if [ -n "$RUN_START" ] && [ -n "$RUN_END" ]; then
+  RUN_DURATION=$(python3 -c "
+from datetime import datetime
+try:
+    s = datetime.fromisoformat('$RUN_START'.replace('Z','+00:00'))
+    e = datetime.fromisoformat('$RUN_END'.replace('Z','+00:00'))
+    print(int((e - s).total_seconds()))
+except: print(0)
+" 2>/dev/null || echo 0)
+fi
+
+TOTAL_TOKENS=$(grep '"type":"result"' "$RUN_LOG" 2>/dev/null | tail -1 | jq -r '.total_tokens // 0' 2>/dev/null || echo 0)
+
+jq -n \
+  --arg agent "claude" \
+  --arg component "doc-sync" \
+  --argjson run "$RUN_NUMBER" \
+  --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  --argjson exit_code "$EXIT_CODE" \
+  --argjson duration "$RUN_DURATION" \
+  --argjson tokens "${TOTAL_TOKENS:-0}" \
+  --arg cost "$COST" \
+  --argjson repos_scanned "${REPOS_SCANNED:-0}" \
+  --argjson drift "${REPOS_WITH_DRIFT:-0}" \
+  --argjson updates "${UPDATES_MADE:-0}" \
+  --arg result_preview "${RESULT:0:500}" \
+  '{agent: $agent, component: $component, run: $run, timestamp: $ts, exit_code: $exit_code, duration_s: $duration, total_tokens: $tokens, cost: $cost, repos_scanned: $repos_scanned, drift_found: $drift, updates_made: $updates, result_preview: $result_preview}' \
+  >> "$COMPARISON_LOG" 2>/dev/null || true
+
 # ── Clean up old logs ───────────────────────────────────────────────
 
 ls -t "$LOGS_DIR"/run-*.log 2>/dev/null | tail -n +31 | xargs rm -f 2>/dev/null || true
