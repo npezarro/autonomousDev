@@ -112,6 +112,9 @@ fi
 
 # ── Run scorer via Claude Haiku ──────────────────────────────────────
 
+# Signal to Stop hooks that this is a scorer session (prevents recursion)
+export CLAUDE_SCORER_ACTIVE=1
+
 PROMPT=$(cat "$SCORER_PROMPT")
 PROMPT="$PROMPT
 
