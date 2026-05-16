@@ -919,3 +919,20 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 **Issue:** The prompt opens with "You are an autonomous development agent running every 30 minutes." This was true before the May 8 frequency reduction but is now stale (actual: every 2 hours). The agent sees this text every run, which could subtly affect its time estimation and scope decisions.
 **Suggestion:** Change "every 30 minutes" to "every 2 hours" in prompt.md line 1. Minor, but the prompt should reflect reality to avoid scope miscalibration.
 **Priority:** LOW — cosmetic, but the prompt is the agent's primary self-context.
+
+---
+
+## 2026-05-16 — Learning Agent Run #559
+
+### S157: fix-checker prompt lacks explicit post-merge verification steps
+**File:** `autonomousDev/fix-checker/prompt.md`
+**Issue:** Daily supervisor run #1 (2026-05-16) scored fix-checker at 65.5% avg across 4 sessions. The three recurring violations are:
+- **Rule #1 (test_before_reporting):** Agent reports PRs as "fixed/merged" without running `npm run build` or tests post-merge.
+- **Rule #7 (update_claude_md):** Security fixes (e.g., sanitize-html XSS, 13 Next.js CVEs) merged without updating the target repo's CLAUDE.md with the vulnerability or mitigation.
+- **Rule #8 (verify_before_asserting):** Agent asserts "PR #171 merged" without showing `gh pr view` confirmation or git log evidence.
+**Suggestion:** Add a "Post-Merge Verification" section to fix-checker/prompt.md requiring:
+1. After merging any PR: run `gh pr view <number> --json state` to confirm `merged`.
+2. After merging a code fix: run `npm run build` or tests to verify the build still passes.
+3. After merging a security fix (CVE patch, XSS fix): update the target repo's CLAUDE.md with a one-line entry in a "Security" or "Known Patches" section documenting the vulnerability class and fix date.
+**Priority:** HIGH — fix-checker is the only automated agent consistently below 70%. These are mechanical steps, not judgment calls, so a prompt addition should raise scores.
+**Evidence:** supervisor/scores/2026-05-16/*.jsonl, supervisor run #1 journal entry 2026-05-16T06:15.
