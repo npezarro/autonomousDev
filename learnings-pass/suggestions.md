@@ -936,3 +936,18 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 3. After merging a security fix (CVE patch, XSS fix): update the target repo's CLAUDE.md with a one-line entry in a "Security" or "Known Patches" section documenting the vulnerability class and fix date.
 **Priority:** HIGH — fix-checker is the only automated agent consistently below 70%. These are mechanical steps, not judgment calls, so a prompt addition should raise scores.
 **Evidence:** supervisor/scores/2026-05-16/*.jsonl, supervisor run #1 journal entry 2026-05-16T06:15.
+
+---
+
+## 2026-05-18 — Learning Agent Run #563
+
+### S158: fix-checker prompt needs context-gathering gate (S157 escalation + new Rule 11 finding)
+**Files:** `autonomousDev/fix-checker/prompt.md`, `autonomousDev-private/fix-checker/prompt.md`
+**Issue:** Two compounding problems:
+1. **S157 still unimplemented (2+ runs):** "Post-Merge Verification" section never added to fix-checker prompt despite being HIGH priority in run #559. Fix-checker is still merging PRs without confirming merge state or running builds post-merge.
+2. **NEW — Rule 11 violation (context-gathering gate):** Today's scorer (score-20260518-150252-2873502) gave fix-checker 0% (7 violations). Primary issue: agent jumped directly to JSON diagnostic output without consulting MEMORY.md or guidance files loaded at SessionStart. The scorer noted: "MEMORY.md was explicitly loaded at SessionStart... Agent made identical unverified assertions without checking loaded MEMORY.md for existing pattern." Rules 1, 2, 4, 5, 8, 10 also violated.
+**Suggestion:** Add TWO sections to both fix-checker prompt files:
+1. **"Context Gathering (Required Before Any Diagnostic Claim)"** — Before asserting any root cause (restart count, API failure, crash pattern), agent MUST: (a) consult MEMORY.md and loaded guidance files, (b) show observable evidence (actual log lines, API response output, code snippet) supporting the claim, (c) grep/read source code to confirm "code does X" before asserting it.
+2. **"Post-Merge Verification" (S157, unimplemented)** — After merging any PR: run `gh pr view <number> --json state` to confirm merged; run `npm run build` for code fixes; update CLAUDE.md for security fixes.
+**Priority:** CRITICAL — fix-checker is scoring 0% due to structural prompt gaps. Two sessions needed, two prompts (public + private) must both be updated.
+**Evidence:** supervisor/scores/2026-05-18/scores.jsonl (score id: score-20260518-150252-2873502), S157 (run #559, still unimplemented).
