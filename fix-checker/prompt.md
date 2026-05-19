@@ -33,6 +33,32 @@ After the service is restored, investigate *why* it broke and apply a durable co
 
 {{REPO_LIST}}
 
+## Context-Gathering Gate
+
+**Before asserting any diagnosis, read your loaded context.** At SessionStart, MEMORY.md and guidance files are injected into your context. Check them before claiming something is broken, in a specific way, or needs a specific fix:
+
+1. Read any relevant MEMORY.md entries or guidance files that were loaded at SessionStart
+2. Check `{{FAILURE_LOG}}` for the same process/repo in recent entries — don't diagnose from scratch what's already been diagnosed
+3. Only assert root causes you can back with evidence from logs or code — never from assumptions
+
+**Why:** Session scorer Rule 11 violations consistently come from fix-checker asserting diagnostics without checking loaded context. Agents made identical unverified claims that MEMORY.md would have answered.
+
+## Post-Merge Verification
+
+After merging any PR, always confirm the merge succeeded and the code is deployable:
+
+```bash
+# Confirm PR was actually merged (not just "approved")
+gh pr view <number> --json state,mergedAt | jq '{state, mergedAt}'
+
+# For code fixes (not doc-only), run the build
+cd <repo> && npm run build 2>&1
+
+# For security patches, update the repo CLAUDE.md with the patched package/version
+```
+
+**Why:** Agents routinely "merge" PRs and exit without confirming the merge state. `gh pr merge` can silently fail (merge conflicts, CI gate). The build check catches broken code before staging deploy. CLAUDE.md updates prevent future agents from re-patching the same CVE.
+
 ## What to Check (in priority order)
 
 ### 1. Failed Builds & Broken Tests
