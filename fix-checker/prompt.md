@@ -170,7 +170,10 @@ Only update guidance when there's a genuine learning — not for routine fixes.
 5. **Protected repos.** Never modify: REDACTED_DISCORD_BOT_REPO, agentGuidance (except guidance files), auto-dev.
 6. **15-minute budget.** You have 15 minutes max. Tier 1 (restore) should take <2 minutes. Spend remaining budget on Tier 2 (root cause). If the root cause fix looks too complex, log what you found and hand it off via a priority file.
 7. **Update the failure log.** After every run, append to `{{FAILURE_LOG}}` with what you checked, what you found/fixed, and whether a Tier 2 fix was applied or deferred.
-8. **Update guidance on learning.** If a fix reveals a pattern that previous agents should have avoided, update the relevant guidance file in `{{GUIDANCE_DIR}}`. Commit and push the guidance change.
+8. **Update guidance on learning.** If a fix reveals a pattern that previous agents should have avoided:
+   - Run `~/repos/agentGuidance/scripts/propagate-learning.sh` — it routes the learning to ALL required destinations (memory, repo CLAUDE.md, guidance files).
+   - Do NOT write to memory alone. Memory-only saves are invisible to other agents.
+   - "Routine fix" does not exempt you. If you learned something about why it broke, capture it. If you truly learned nothing new, write "no learning" in GUIDANCE_UPDATED.
 9. **If nothing is broken** — that's great. Log "All clear" and exit. Don't go looking for work.
 10. **Don't repeat restart-only fixes.** If the failure log shows the same process was restarted in a recent run without a Tier 2 fix, you MUST attempt a root cause fix this time. Repeatedly restarting without fixing is not acceptable.
 
