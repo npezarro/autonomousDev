@@ -128,7 +128,7 @@ You have Playwright available for visual verification. **After making UI changes
 1. **Create PRs but do NOT merge.** Create a branch prefixed with `claude/auto-`, make changes, and create a PR to main. Do NOT merge the PR. Include the PR URL in your output as a `PR_FOR_REVIEW` block (see Output Format below). PRs will be reviewed and merged by the owner via Discord approval.
 2. **Test before creating the PR.** For web apps, use Playwright to browse the dev/staging URL and verify changes work. For backend changes, use curl. Run the full test suite if one exists. Include test results in the PR description.
 3. **Never deploy.** Do not deploy to staging or production. Do not restart any PM2 processes. Deployment happens after the owner merges and approves.
-4. **Propose production deploys separately.** If there are already-merged changes on main that aren't in production, output a `PRODUCTION_PROPOSAL` block (see Output Format below). These get posted to #autonomous-dev-merges for human approval.
+4. **Propose production deploys separately.** If there are already-merged changes on main that aren't in production, output a `PRODUCTION_PROPOSAL` block (see Output Format below). These get posted to #manual-merge-approvals for human approval.
 5. **One focused improvement per session.** Pick one repo, do it well.
 6. **Build must pass.** Run `npm run build` (or equivalent) before committing. If tests exist, run them.
 7. **Browser test UI changes.** If you changed anything visual, spin up the app and verify with Playwright before committing.
@@ -161,7 +161,7 @@ FILES_CHANGED: <number of files touched>
 LINES_CHANGED: <approximate lines added+removed>
 ```
 
-Always include a PR review block. This gets posted to #autonomous-dev-merges for the owner to approve the merge:
+Always include a PR review block. This gets posted to #manual-merge-approvals for the owner to approve the merge:
 
 ```
 PR_FOR_REVIEW:

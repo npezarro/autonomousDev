@@ -671,7 +671,7 @@ if [ $EXIT_CODE -eq 0 ]; then
 
 ${RESULT:0:1800}"
 
-  # Post PR review requests to #autonomous-dev-merges (gated on all checks)
+  # Post PR review requests to #manual-merge-approvals (gated on all checks)
   PR_REVIEW=$(echo "$RESULT" | sed -n '/PR_FOR_REVIEW:/,/^$/p' | head -20)
   if [ -n "$PR_REVIEW" ]; then
     # Determine if any phase blocked the PR
@@ -716,7 +716,7 @@ React with :white_check_mark: to approve and merge this PR."
     fi
   fi
 
-  # Post scan-only proposals to #autonomous-dev-merges if any
+  # Post scan-only proposals to #manual-merge-approvals if any
   SCAN_PROPOSAL=$(echo "$RESULT" | sed -n '/PROPOSAL:/,/^$/p' | head -20)
   if [ -n "$SCAN_PROPOSAL" ]; then
     post_to_discord "$AUTONOMOUS_MERGES_WEBHOOK" "**Run #$RUN_NUMBER — Proposal (budget-saving mode)**
@@ -726,7 +726,7 @@ $SCAN_PROPOSAL
 React with :white_check_mark: to approve execution on next run."
   fi
 
-  # Post production proposals to #autonomous-dev-merges if any
+  # Post production proposals to #manual-merge-approvals if any
   PROPOSAL=$(echo "$RESULT" | sed -n '/PRODUCTION_PROPOSAL:/,/^$/p' | head -20)
   if [ -n "$PROPOSAL" ]; then
     post_to_discord "$AUTONOMOUS_MERGES_WEBHOOK" "**Run #$RUN_NUMBER — Production Deploy Proposal**

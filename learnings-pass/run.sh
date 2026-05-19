@@ -480,7 +480,7 @@ ${ACTIVITY_SUMMARY:0:1800}"
   }
 fi
 
-# ── Post PR review requests to #autonomous-dev-merges ──────────────
+# ── Post PR review requests to #manual-merge-approvals ─────────────
 
 if [ $EXIT_CODE -eq 0 ]; then
   PR_REVIEW=$(echo "$RESULT" | sed -n '/PR_FOR_REVIEW:/,/^$/p' | head -20)
@@ -490,7 +490,7 @@ if [ $EXIT_CODE -eq 0 ]; then
 $PR_REVIEW
 
 React with :white_check_mark: to approve and merge."
-    log "Posted PR review request to #autonomous-dev-merges"
+    log "Posted PR review request to #manual-merge-approvals"
   fi
 fi
 

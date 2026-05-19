@@ -14,7 +14,8 @@
     "runCoach",
     "reddit-bottom-sheet-blocker",
     "social-tools",
-    "deal-scout"
+    "deal-scout",
+    "shopper"
   ],
   "protected_repos": ["REDACTED_DISCORD_BOT_REPO", "agentGuidance", "auto-dev"],
   "work_log_channel_id": "REDACTED_WORK_LOG_CHANNEL_ID",

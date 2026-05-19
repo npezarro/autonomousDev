@@ -33,6 +33,7 @@ if [ -f "$SCRIPT_DIR/.env" ]; then
 fi
 
 SUPERVISOR_WEBHOOK="${DISCORD_SUPERVISOR_WEBHOOK_URL:-}"
+MERGES_WEBHOOK="${AUTONOMOUS_MERGES_WEBHOOK:-}"
 
 # ── Logging ─────────────────────────────────────────────────────────
 
@@ -394,6 +395,21 @@ $SUMMARY")
     fi
   else
     post_to_discord "$POST_WEBHOOK" "**Ecosystem Supervisor #$RUN_NUMBER FAILED** (exit: $EXIT_CODE, cost: $COST)"
+  fi
+fi
+
+# ── Post improvement proposals to #manual-merge-approvals ──────────
+
+if [ $EXIT_CODE -eq 0 ] && [ -n "$MERGES_WEBHOOK" ]; then
+  # Extract improvement proposals that need signoff
+  PROPOSALS=$(echo "$RESULT" | sed -n '/## Improvement Proposals/,/## Profile Performance/p' | head -60)
+  if [ -n "$PROPOSALS" ] && ! echo "$PROPOSALS" | grep -qi "no changes\|no proposals\|insufficient data"; then
+    post_to_discord "$MERGES_WEBHOOK" "📊 **Supervisor #$RUN_NUMBER — Improvement Proposals**
+
+$PROPOSALS
+
+React: ✅ approve | ❌ reject | 🔨 investigate"
+    log "Posted improvement proposals to #manual-merge-approvals"
   fi
 fi
 

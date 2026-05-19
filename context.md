@@ -49,7 +49,7 @@ Each run now executes 4 phases:
 - **Medium priority** (normal runs): UX improvements, new user-facing features, performance, design system alignment, code quality, dep updates
 - **Low priority**: tests, a11y, refactoring, types, docs, git cleanup
 - **Feature run top-tier work**: UX flows, visual polish, new features, performance, design system. Tests and a11y explicitly excluded from feature runs.
-- **Proposal mode**: When 7d usage > 50%, agent scans and proposes but doesn't execute. Proposals posted to #autonomous-dev-merges for sign-off.
+- **Proposal mode**: When 7d usage > 50%, agent scans and proposes but doesn't execute. Proposals posted to #manual-merge-approvals for sign-off.
 - Decision rationale: overnight runs were burning ~20% of 7d budget on tests/a11y/lint; user wants UX/feature advancement
 
 ### Learning Agent

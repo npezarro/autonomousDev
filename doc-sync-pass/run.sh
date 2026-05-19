@@ -275,7 +275,7 @@ if [ $EXIT_CODE -eq 0 ] && [ -n "$AUTONOMOUS_MERGES_WEBHOOK" ]; then
 $PR_REVIEW
 
 React with :white_check_mark: to approve and merge."
-    log "Posted PR review request to #autonomous-dev-merges"
+    log "Posted PR review request to #manual-merge-approvals"
   fi
 fi
 
