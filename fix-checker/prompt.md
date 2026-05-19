@@ -106,6 +106,8 @@ ssh REDACTED_VM_HOST "pm2 restart <process-name>"
 
 **Important:** Only directly act on staging processes and non-critical services. For production processes (claude-bot, etc.) with high restarts, log the issue but **never touch production processes.**
 
+**PM2 Registration Rule:** When re-registering a PM2 process, ALWAYS use `pm2 start ecosystem.config.cjs` (or `.js`) from the repo's directory. NEVER create ad-hoc temp scripts (e.g., `/tmp/start-*.sh`) and register them with `pm2 start /tmp/script.sh --name <name>`. Temp-script registrations break on PM2 resurrection (the path disappears) and create orphaned processes that hold ports, causing EADDRINUSE crash loops for the properly-registered process.
+
 **Tier 2 — Root Cause Fix:**
 
 After restoring the service, investigate the crash:
