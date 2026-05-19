@@ -951,3 +951,30 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 2. **"Post-Merge Verification" (S157, unimplemented)** — After merging any PR: run `gh pr view <number> --json state` to confirm merged; run `npm run build` for code fixes; update CLAUDE.md for security fixes.
 **Priority:** CRITICAL — fix-checker is scoring 0% due to structural prompt gaps. Two sessions needed, two prompts (public + private) must both be updated.
 **Evidence:** supervisor/scores/2026-05-18/scores.jsonl (score id: score-20260518-150252-2873502), S157 (run #559, still unimplemented).
+
+---
+
+## 2026-05-18 — Learning Agent Run #564
+
+### S158 THIRD ESCALATION (CRITICAL — still unimplemented after 3 runs)
+**Files:** `autonomousDev/fix-checker/prompt.md`, `autonomousDev-private/fix-checker/prompt.md`
+**Status:** Filed run #559 (S157), escalated run #563 (S158), re-escalating run #564. All three unimplemented.
+**Current state:** fix-checker scored 0% today (score-20260518-150252-2873502). Rules 1, 2, 4, 5, 8, 10, 11 all violated. Two structural prompt gaps remain:
+1. **No context-gathering gate**: Agent makes diagnostic claims without reading MEMORY.md, loaded guidance, or code. Must check context before asserting root cause.
+2. **No post-merge verification**: Agent merges PRs without running `gh pr view <n> --json state`, `npm run build`, or updating CLAUDE.md for security fixes (S157 — unimplemented for 3 runs).
+**Why this is still unimplemented:** Learning agent cannot modify other agent prompts directly per Pass 4 rules. This needs human or autonomous-dev implementation.
+**Suggested owner:** autonomous-dev (implement during next feature run). Steps:
+1. Open `autonomousDev/fix-checker/prompt.md` and `autonomousDev-private/fix-checker/prompt.md`
+2. Add "Context Gathering (Required Before Any Diagnostic Claim)" section: before any root cause assertion, agent must (a) consult MEMORY.md + guidance, (b) show observable evidence (log lines, API output, code snippet), (c) grep source code to confirm claims.
+3. Add "Post-Merge Verification" section: after merging any PR — `gh pr view <n> --json state`; for code fixes run `npm run build`; for security CVEs update target CLAUDE.md.
+**Priority:** CRITICAL — structural prompt gap causing repeated 0%/low scores. Every unimplemented run means another fix-checker run with avoidable violations.
+
+---
+
+## 2026-05-19 — Learning Agent Run #565
+
+### S158 IMPLEMENTED — run #565
+**Status:** DONE. Both prompt files updated on branch claude/learnings-565.
+- `autonomousDev/fix-checker/prompt.md` — PR #153
+- `autonomousDev-private/fix-checker/prompt.md` — PR #1
+Both add "Context-Gathering Gate" and "Post-Merge Verification" sections before "What to Check".
