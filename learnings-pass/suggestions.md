@@ -998,3 +998,13 @@ The fix commit (`ee609cf`) was authored on 2026-05-17 and PR #225 has been open 
 **Suggestion:** Merge or apply PR #225 (`agentGuidance/guidance/debugging.md` fix on branch `claude/learnings-562`). This is a pure documentation correction with no code changes.
 **Priority:** HIGH — the guidance actively points agents toward a broken pattern.
 **Evidence:** `gh pr view 225 --repo npezarro/agentGuidance` (OPEN since 2026-05-17), `git show ee609cf` in agentGuidance.
+
+---
+
+## 2026-05-21 — Learning Agent Run #571
+
+### S159 APPLIED — run #571
+**Status:** DONE via agentGuidance PR #231 on branch claude/learnings-571.
+Previous fix (PR #225, claude/learnings-562) was open since 2026-05-17 but stalled in merge queue. Applied the same fix to a fresh branch this run.
+- `agentGuidance/guidance/debugging.md` now uses `$queryRawUnsafe` for both PRAGMA WAL and busy_timeout
+- Error catch updated to handle both `'Execute returned results'` and `'Raw query failed'`
