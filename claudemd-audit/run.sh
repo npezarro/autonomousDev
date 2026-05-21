@@ -4,7 +4,7 @@
 # agentGuidance. Complements doc-sync (which checks code→CLAUDE.md drift).
 #
 # Usage: ./run.sh [--dry-run]
-# Schedule: daily via cron
+# Schedule: weekly (Saturday, after 7d usage resets) via cron
 
 set -euo pipefail
 
@@ -75,12 +75,10 @@ echo $$ > "$LOCK_FILE"
 USAGE_SCRIPT="$HOME/repos/privateContext/check-usage.sh"
 if [ -x "$USAGE_SCRIPT" ]; then
   USAGE_OUT=$("$USAGE_SCRIPT" --force 2>/dev/null || echo "")
-  if echo "$USAGE_OUT" | grep -qE "5h:.*[89][0-9]\.[0-9]%|5h:.*100"; then
-    log "SKIP: 5h usage too high: $USAGE_OUT"
-    exit 0
-  fi
-  if echo "$USAGE_OUT" | grep -qE "7d:.*[89][0-9]\.[0-9]%|7d:.*100"; then
-    log "SKIP: 7d usage too high: $USAGE_OUT"
+  # Skip if 7d usage >= 85% (this is a heavyweight run, only worth it when capacity is available)
+  SEVEN_DAY_PCT=$(echo "$USAGE_OUT" | grep -oP '7d: \K[0-9.]+' || echo "0")
+  if [ "$(echo "$SEVEN_DAY_PCT >= 85" | bc 2>/dev/null || echo 0)" = "1" ]; then
+    log "SKIP: 7d usage at ${SEVEN_DAY_PCT}% (threshold 85%): $USAGE_OUT"
     exit 0
   fi
 fi
