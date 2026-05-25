@@ -978,3 +978,33 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 - `autonomousDev/fix-checker/prompt.md` — PR #153
 - `autonomousDev-private/fix-checker/prompt.md` — PR #1
 Both add "Context-Gathering Gate" and "Post-Merge Verification" sections before "What to Check".
+
+---
+
+## 2026-05-20 — Learning Agent Run #568
+
+### S159: agentGuidance debugging.md has stale/incorrect SQLite PRAGMA guidance (PR #225 unmerged since 2026-05-17)
+**File:** `agentGuidance/guidance/debugging.md`
+**Issue:** The current main branch still documents the OLD (incorrect) SQLite PRAGMA guidance:
+- Says `busy_timeout` does NOT return a result → use `$executeRawUnsafe`
+- In practice this causes spurious 'Execute returned results' errors
+- Correct fix (from runeval e4c4acf, learning-agent run #562): use `$queryRawUnsafe` for BOTH WAL mode AND busy_timeout PRAGMAs
+- Also catches `'Raw query failed'` in addition to `'Execute returned results'`
+
+The fix commit (`ee609cf`) was authored on 2026-05-17 and PR #225 has been open since then. It has not been merged.
+
+**Risk:** Any agent following the `debugging.md` guidance for Prisma SQLite PRAGMAs will implement the broken pattern, causing the same crash loop that required 5+ runeval fix commits to resolve.
+
+**Suggestion:** Merge or apply PR #225 (`agentGuidance/guidance/debugging.md` fix on branch `claude/learnings-562`). This is a pure documentation correction with no code changes.
+**Priority:** HIGH — the guidance actively points agents toward a broken pattern.
+**Evidence:** `gh pr view 225 --repo npezarro/agentGuidance` (OPEN since 2026-05-17), `git show ee609cf` in agentGuidance.
+
+---
+
+## 2026-05-21 — Learning Agent Run #571
+
+### S159 APPLIED — run #571
+**Status:** DONE via agentGuidance PR #231 on branch claude/learnings-571.
+Previous fix (PR #225, claude/learnings-562) was open since 2026-05-17 but stalled in merge queue. Applied the same fix to a fresh branch this run.
+- `agentGuidance/guidance/debugging.md` now uses `$queryRawUnsafe` for both PRAGMA WAL and busy_timeout
+- Error catch updated to handle both `'Execute returned results'` and `'Raw query failed'`
