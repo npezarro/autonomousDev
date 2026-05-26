@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # run.sh — Fix checker agent runner.
-# Called by cron every 10 minutes. Scans repos for failed builds, broken tests,
+# Live scheduling is via the private mirror, which runs only in the final ~2h
+# before the weekly 7d reset (Sun ~10-11:30am PT). Scans repos for failed builds, broken tests,
 # incomplete implementations, and crashed services. Fixes what it finds.
 #
 # Skips if autonomous-dev is already running (capacity constraint).
