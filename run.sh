@@ -578,6 +578,46 @@ This PR needs attention before merge." 2>/dev/null || true
   fi
 fi
 
+# ── Phase 3.5: Cloud ultrareview for complex PRs ─────────────────────
+
+ULTRAREVIEW_STATUS="skip"
+ULTRAREVIEW_DETAIL=""
+
+if [ $EXIT_CODE -eq 0 ] && [ "${RESULT_PR:-0}" != "0" ] && [ "$RESULT_REPO" != "unknown" ] \
+   && [ "$CC_REVIEW_STATUS" != "fail" ] && [ "$VERIFY_STATUS" != "fail" ]; then
+  if [ -x "$SCRIPT_DIR/ultrareview.sh" ]; then
+    log "PHASE 3.5: Cloud ultrareview of PR #$RESULT_PR in $RESULT_REPO..."
+    ULTRAREVIEW_OUTPUT=$("$SCRIPT_DIR/ultrareview.sh" "$REPOS_ROOT" "$RESULT_REPO" "$RESULT_PR" "${FILES_CHANGED:-0}" 2>&1 || true)
+
+    ULTRAREVIEW_LAST=$(echo "$ULTRAREVIEW_OUTPUT" | tail -1)
+    if echo "$ULTRAREVIEW_LAST" | grep -q "^ULTRAREVIEW_PASS"; then
+      ULTRAREVIEW_STATUS="pass"
+      ULTRAREVIEW_DETAIL=$(echo "$ULTRAREVIEW_LAST" | sed 's/^ULTRAREVIEW_PASS: //')
+      log "ULTRAREVIEW: PASS ($ULTRAREVIEW_DETAIL)"
+    elif echo "$ULTRAREVIEW_LAST" | grep -q "^ULTRAREVIEW_FAIL"; then
+      ULTRAREVIEW_STATUS="fail"
+      ULTRAREVIEW_DETAIL=$(echo "$ULTRAREVIEW_LAST" | sed 's/^ULTRAREVIEW_FAIL: //')
+      log "ULTRAREVIEW: FAIL ($ULTRAREVIEW_DETAIL)"
+      gh pr comment "$RESULT_PR" \
+        --repo "$(cd "$REPOS_ROOT/$RESULT_REPO" && gh repo view --json nameWithOwner -q '.nameWithOwner' 2>/dev/null || echo "")" \
+        --body "**Cloud Ultrareview -- Issues Found**
+
+Multi-agent cloud review detected issues:
+\`$ULTRAREVIEW_DETAIL\`
+
+This PR needs attention before merge." 2>/dev/null || true
+    elif echo "$ULTRAREVIEW_LAST" | grep -q "^ULTRAREVIEW_CONCERNS"; then
+      ULTRAREVIEW_STATUS="concerns"
+      ULTRAREVIEW_DETAIL=$(echo "$ULTRAREVIEW_LAST" | sed 's/^ULTRAREVIEW_CONCERNS: //')
+      log "ULTRAREVIEW: CONCERNS ($ULTRAREVIEW_DETAIL)"
+    else
+      ULTRAREVIEW_STATUS="skip"
+      ULTRAREVIEW_DETAIL=$(echo "$ULTRAREVIEW_LAST" | sed 's/^ULTRAREVIEW_SKIP: //')
+      log "ULTRAREVIEW: SKIP ($ULTRAREVIEW_DETAIL)"
+    fi
+  fi
+fi
+
 # ── Phase 4: Gemini pre-deploy review ─────────────────────────────────
 
 PREDEPLOY_STATUS="skip"
@@ -626,7 +666,9 @@ jq -n \
   --arg cc_review_detail "$CC_REVIEW_DETAIL" \
   --arg predeploy "$PREDEPLOY_STATUS" \
   --arg predeploy_detail "$PREDEPLOY_DETAIL" \
-  '{run: $run, timestamp: $ts, run_type: $run_type, repo: $repo, pr: $pr, files_changed: $files, lines_changed: $lines, exit_code: $exit_code, cost: $cost, feature_run: $feature_run, verify: $verify, verify_detail: $verify_detail, cc_review: $cc_review, cc_review_detail: $cc_review_detail, predeploy: $predeploy, predeploy_detail: $predeploy_detail}' \
+  --arg ultrareview "$ULTRAREVIEW_STATUS" \
+  --arg ultrareview_detail "$ULTRAREVIEW_DETAIL" \
+  '{run: $run, timestamp: $ts, run_type: $run_type, repo: $repo, pr: $pr, files_changed: $files, lines_changed: $lines, exit_code: $exit_code, cost: $cost, feature_run: $feature_run, verify: $verify, verify_detail: $verify_detail, cc_review: $cc_review, cc_review_detail: $cc_review_detail, predeploy: $predeploy, predeploy_detail: $predeploy_detail, ultrareview: $ultrareview, ultrareview_detail: $ultrareview_detail}' \
   >> "$OUTCOME_LOG" 2>/dev/null || true
 
 # ── Phase 5: Ecosystem Supervisor scoring ────────────────────────────
@@ -683,6 +725,9 @@ ${RESULT:0:1800}"
     elif [ "$CC_REVIEW_STATUS" = "fail" ]; then
       BLOCKED=true
       BLOCK_REASON="CC code review found blocking issues: \`$CC_REVIEW_DETAIL\`"
+    elif [ "$ULTRAREVIEW_STATUS" = "fail" ]; then
+      BLOCKED=true
+      BLOCK_REASON="Cloud ultrareview found blocking issues: \`$ULTRAREVIEW_DETAIL\`"
     elif [ "$PREDEPLOY_STATUS" = "fail" ]; then
       BLOCKED=true
       BLOCK_REASON="Pre-deploy review found blocking issues: \`$PREDEPLOY_DETAIL\`"
@@ -700,11 +745,14 @@ PR needs fixes before it can be merged."
       STATUS_LINE=""
       [ "$VERIFY_STATUS" = "pass" ] && STATUS_LINE="Build: \`$VERIFY_DETAIL\`"
       [ -n "$CC_REVIEW_DETAIL" ] && STATUS_LINE="$STATUS_LINE | CC Review: \`$CC_REVIEW_STATUS\`"
+      [ "$ULTRAREVIEW_STATUS" != "skip" ] && STATUS_LINE="$STATUS_LINE | Ultrareview: \`$ULTRAREVIEW_STATUS\`"
       [ -n "$PREDEPLOY_DETAIL" ] && STATUS_LINE="$STATUS_LINE | Pre-deploy: \`$PREDEPLOY_STATUS\`"
 
       CONCERNS_NOTE=""
       [ "$CC_REVIEW_STATUS" = "concerns" ] && CONCERNS_NOTE="
 CC review note: $CC_REVIEW_DETAIL"
+      [ "$ULTRAREVIEW_STATUS" = "concerns" ] && CONCERNS_NOTE="$CONCERNS_NOTE
+Ultrareview note: $ULTRAREVIEW_DETAIL"
       [ "$PREDEPLOY_STATUS" = "concerns" ] && CONCERNS_NOTE="$CONCERNS_NOTE
 Pre-deploy note: $PREDEPLOY_DETAIL"
 
