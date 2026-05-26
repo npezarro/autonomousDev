@@ -273,7 +273,7 @@ fi
 
 # ── Pre-flight: verify Claude auth ──────────────────────────────────
 
-AUTH_CHECK=$(echo "Say: OK" | "$CLAUDE_BIN" -p 2>&1)
+AUTH_CHECK=$(echo "Say: OK" | "$CLAUDE_BIN" -p --model haiku 2>&1)
 if echo "$AUTH_CHECK" | grep -qi "authentication_failed\|does not have access\|login again"; then
   log "SKIP: Claude auth failed"
   write_state "$(jq -n \
