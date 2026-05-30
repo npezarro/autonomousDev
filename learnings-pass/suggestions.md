@@ -978,3 +978,13 @@ Each entry includes the suggestion, rationale, and which file/prompt it applies 
 - `autonomousDev/fix-checker/prompt.md` — PR #153
 - `autonomousDev-private/fix-checker/prompt.md` — PR #1
 Both add "Context-Gathering Gate" and "Post-Merge Verification" sections before "What to Check".
+
+---
+
+## 2026-05-30 — Learning Agent Run #613
+
+### S159: auto-shorts-worker has 3 stale open PRs touching CLAUDE.md
+**Files:** `auto-shorts-worker/CLAUDE.md` — PRs #33, #34, #35 all open and unmerged since 2026-05-15 to 2026-05-19
+**Issue:** Three separate learning-agent and doc-sync PRs for auto-shorts-worker CLAUDE.md are sitting unmerged. This creates merge conflict risk as new CLAUDE.md additions (like this run's #44) stack up. The backlog will cause increasingly painful resolves.
+**Suggestion:** Merge or close PRs #33, #34, #35 on auto-shorts-worker. All three add documentation (headless env gotchas, MediaPipe CPU, cross-cutting rules) that are still valid. Consider batch-merging oldest-first.
+**Priority:** LOW — no blocking issue, but backlog grows with each run.
