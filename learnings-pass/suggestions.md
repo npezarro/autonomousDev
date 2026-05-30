@@ -988,3 +988,14 @@ Both add "Context-Gathering Gate" and "Post-Merge Verification" sections before 
 **Issue:** Three separate learning-agent and doc-sync PRs for auto-shorts-worker CLAUDE.md are sitting unmerged. This creates merge conflict risk as new CLAUDE.md additions (like this run's #44) stack up. The backlog will cause increasingly painful resolves.
 **Suggestion:** Merge or close PRs #33, #34, #35 on auto-shorts-worker. All three add documentation (headless env gotchas, MediaPipe CPU, cross-cutting rules) that are still valid. Consider batch-merging oldest-first.
 **Priority:** LOW — no blocking issue, but backlog grows with each run.
+
+---
+
+## 2026-05-30 — Learning Agent Run #619
+
+### S159 ESCALATION: auto-shorts-worker now has 5 stale open PRs
+**Files:** auto-shorts-worker CLAUDE.md and related docs
+**Current state (run #619):** 5 open PRs: #33 (2026-05-15), #34 (2026-05-15), #35 (2026-05-19), #44 (2026-05-30, run #613), #46 (doc-sync #181, 2026-05-30)
+**Issue:** Backlog has grown from 3 (run #613) to 5. Three stale PRs from May 15-19 are sitting unmerged alongside two fresh PRs. Stacking risk is now high.
+**Suggestion:** Batch-merge #33, #34, #35 oldest-first (all add documentation, no conflicts with new code), then #44 and #46 can land cleanly.
+**Priority:** MEDIUM (escalated from LOW — 5 open PRs is a real merge-conflict risk now)
