@@ -999,3 +999,17 @@ Both add "Context-Gathering Gate" and "Post-Merge Verification" sections before 
 **Issue:** Backlog has grown from 3 (run #613) to 5. Three stale PRs from May 15-19 are sitting unmerged alongside two fresh PRs. Stacking risk is now high.
 **Suggestion:** Batch-merge #33, #34, #35 oldest-first (all add documentation, no conflicts with new code), then #44 and #46 can land cleanly.
 **Priority:** MEDIUM (escalated from LOW — 5 open PRs is a real merge-conflict risk now)
+
+---
+
+## 2026-06-01 — Learning Agent Run #632
+
+### S71 STATUS UPDATE: trading-agent stale PR backlog nearly resolved
+**Previous state (run #627):** 18+ open PRs in trading-agent, escalated to HIGH.
+**Current state (run #632):** 2 open PRs — #80 (Gemini fix, 0531-2012) and #81 (learning-agent docs, run #631). Dramatic improvement. S71 is now LOW severity.
+**No action needed.** PR #81 is the run #631 CLAUDE.md gotchas PR (FRED/EIA/EDGAR/WAL). PR #80 is a Gemini fix PR. Both are recent and expected.
+
+### S159 STATUS UPDATE: auto-shorts-worker stale PR backlog resolved
+**Previous state (run #627):** 10+ open PRs escalated to HIGH.
+**Current state (run #632):** 0 open PRs from learning-agent (gh pr list returned empty). S159 is RESOLVED.
+**How:** run #628 bulk-closed stale PRs across repos. The backlog did not regrow.
