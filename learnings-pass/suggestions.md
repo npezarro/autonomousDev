@@ -988,3 +988,13 @@ Both add "Context-Gathering Gate" and "Post-Merge Verification" sections before 
 **Issue:** Three separate learning-agent and doc-sync PRs for auto-shorts-worker CLAUDE.md are sitting unmerged. This creates merge conflict risk as new CLAUDE.md additions (like this run's #44) stack up. The backlog will cause increasingly painful resolves.
 **Suggestion:** Merge or close PRs #33, #34, #35 on auto-shorts-worker. All three add documentation (headless env gotchas, MediaPipe CPU, cross-cutting rules) that are still valid. Consider batch-merging oldest-first.
 **Priority:** LOW — no blocking issue, but backlog grows with each run.
+
+---
+
+## 2026-06-03 — Learning Agent Run #669
+
+### S176: agentGuidance + knowledgeBase have 20+ open learning-agent PRs — backlog growing
+**Repos affected:** agentGuidance (10+ open PRs: #275–#284), knowledgeBase (11+ open PRs: #99–#111)
+**Issue:** The claude-auto-merger does not auto-merge learning-agent PRs (by design — they require manual review per its learnings-PR exception). The backlog has grown to 21+ open PRs across both guidance repos, creating merge-conflict stacking risk and making it hard to track what's on main vs. staged. Run #628 did a bulk-close sweep but the backlog has regrown.
+**Suggestion:** Either (a) manually batch-merge oldest-first (all are additive doc-only changes, low conflict risk), or (b) change the auto-merger's exception to allow auto-merge of learnings PRs that touch only `guidance/`, `projects/`, or `patterns/` directories with no code changes.
+**Priority:** MEDIUM — not blocking but the growing backlog makes dedup checks harder each run.
