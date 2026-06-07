@@ -998,3 +998,26 @@ Both add "Context-Gathering Gate" and "Post-Merge Verification" sections before 
 **Issue:** The claude-auto-merger does not auto-merge learning-agent PRs (by design — they require manual review per its learnings-PR exception). The backlog has grown to 21+ open PRs across both guidance repos, creating merge-conflict stacking risk and making it hard to track what's on main vs. staged. Run #628 did a bulk-close sweep but the backlog has regrown.
 **Suggestion:** Either (a) manually batch-merge oldest-first (all are additive doc-only changes, low conflict risk), or (b) change the auto-merger's exception to allow auto-merge of learnings PRs that touch only `guidance/`, `projects/`, or `patterns/` directories with no code changes.
 **Priority:** MEDIUM — not blocking but the growing backlog makes dedup checks harder each run.
+
+---
+
+**Run #672 — 2026-06-07**
+
+No new suggestions this run. The usage gate inconsistency (reviewer at 50% sleeping through peak hours) was resolved by raising to 75% in commit `a15407e`. This confirms: when adding a new autonomous agent, check what gate its "sibling" agents use and align thresholds by function (review agents need to fire when errors occur, so match the error handler's threshold). Documenting this as a solved pattern rather than an open suggestion.
+
+
+---
+
+**Run #673 — 2026-06-07**
+
+No new suggestions this run (job-pipeline wiki + valueSortify memory only).
+
+---
+
+**Run #674 — 2026-06-07**
+
+### S179: autonomousDev-private/fix-checker has no CLAUDE.md despite significant active development
+**Files:** `autonomousDev-private/fix-checker/` (no CLAUDE.md exists)
+**Issue:** The fix-checker has had 6+ PRs merged in the last month (draft gate, Gemini reviewer, usage gate 50→75%, auto-reject conflicting PRs, skip-re-review on same SHA, PR cap). Each run the learning agent has to re-derive the system's behavior from code. A CLAUDE.md would document: the three-tier pipeline (error-handler → Gemini fix → Claude reviewer), the reviewer verdict state schema, protected repo list, gate thresholds, and the cron schedule. This is the same situation valueSortify was in before PR #140.
+**Suggestion:** Create `autonomousDev-private/fix-checker/CLAUDE.md` (private repo, so infra details are safe there). Document: pipeline, verdict states, reviewer-state.json schema, usage gate, cron schedule, protected paths.
+**Priority:** MEDIUM — no immediate breakage, but every session touching this system re-discovers the same details.
