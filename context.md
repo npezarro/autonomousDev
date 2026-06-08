@@ -1,6 +1,16 @@
 # context.md
 
 ## Last Updated
+2026-06-08 — fix-checker prompt mandates `./deploy.sh` for VM apps
+
+## Session Notes (2026-06-08)
+- `fix-checker/prompt.md` adds "Deploy Rule (VM apps)": always use `./deploy.sh`, never `npm run build` + `pm2 restart` directly (commit `596bad0`). Root cause: 2026-06-07 fix-checker auto-commit + auto-deploy raced an operator deploy on runeval, deleted `.next/standalone/server.js` mid-flight, crash-looped runeval off PM2 (~10min 503 outage). runeval + health-hub `deploy.sh` are now `flock`-protected; the prompt rule keeps the bot from bypassing the lock.
+
+Full closeout: `privateContext/deliverables/closeouts/2026-06-08-runeval-daily-push-automation-and-deploy-lock.md`
+
+---
+
+## Last Updated (prior)
 2026-05-12 — Multi-model pipeline: Gemini codes, CC reviews, Gemini pre-deploy review
 
 ## Current State
