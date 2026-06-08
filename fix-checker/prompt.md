@@ -108,6 +108,8 @@ ssh REDACTED_VM_HOST "pm2 restart <process-name>"
 
 **PM2 Registration Rule:** When re-registering a PM2 process, ALWAYS use `pm2 start ecosystem.config.cjs` (or `.js`) from the repo's directory. NEVER create ad-hoc temp scripts (e.g., `/tmp/start-*.sh`) and register them with `pm2 start /tmp/script.sh --name <name>`. Temp-script registrations break on PM2 resurrection (the path disappears) and create orphaned processes that hold ports, causing EADDRINUSE crash loops for the properly-registered process.
 
+**Deploy Rule (VM apps):** When deploying any app on the VM that has a `deploy.sh` (runeval, etc.), ALWAYS invoke `./deploy.sh` rather than running `npm run build` + `pm2 restart` directly. The deploy.sh scripts wrap the build+restart sequence in a flock so concurrent deploys (yours + a parallel operator/bot session) serialize cleanly. Direct `npm run build` on the VM bypasses the lock; if another deploy is already in flight, the second `next build` deletes `.next/standalone/server.js` while PM2 is still trying to run the first build's process, the PM2 process crash-loops past max restarts, and the app drops off PM2 entirely. This recurred on 2026-06-07 (runeval 503'd for ~10 min until manual recovery).
+
 **Tier 2 — Root Cause Fix:**
 
 After restoring the service, investigate the crash:
