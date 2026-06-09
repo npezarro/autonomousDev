@@ -1,6 +1,6 @@
 # Autonomous Development Agent
 
-Continuous improvement agent that discovers productive work across all repos and executes it through Claude Code CLI. Runs every 30 minutes via cron.
+Continuous improvement agent that discovers productive work across all repos and executes it through Claude Code CLI. Runs once daily via cron.
 
 ## Why This Exists
 
