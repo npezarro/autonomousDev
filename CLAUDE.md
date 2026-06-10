@@ -1,5 +1,8 @@
 # autonomousDev (public mirror)
 
+canonical-copy: ~/repos/autonomousDev-private
+writer: autonomousDev agents (doc-sync-pass, claudemd-audit only)
+
 **Agents: read this before editing anything here.**
 
 - The LIVE main runner, fix-checker, learnings-pass, and supervisor execute from the private repo (`autonomousDev-private`). Cron points there. Changes made to those components in THIS repo do not run.
