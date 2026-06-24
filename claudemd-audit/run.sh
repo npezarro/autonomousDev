@@ -141,7 +141,7 @@ PROMPT="${PROMPT//\{\{GUIDANCE_DIR\}\}/$GUIDANCE_DIR}"
 PROMPT="${PROMPT//\{\{DATE\}\}/$(date -u +%Y-%m-%d)}"
 PROMPT="${PROMPT//\{\{RUN_NUMBER\}\}/$RUN_NUMBER}"
 
-MAX_TIMEOUT=1200  # 20 minutes — needs to read many files
+MAX_TIMEOUT="${CLAUDEMD_AUDIT_TIMEOUT:-2400}"  # 40 min — fan-out spawns batched Task subagents; the burstier parallel run needs headroom over the old serial 20 min. Override via CLAUDEMD_AUDIT_TIMEOUT.
 
 log "START: CLAUDE.md audit run #$RUN_NUMBER ($REPO_COUNT repos, timeout: ${MAX_TIMEOUT}s)"
 
