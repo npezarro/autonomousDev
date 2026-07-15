@@ -1,6 +1,9 @@
 # context.md
 
 ## Last Updated
+2026-07-15 — The 4 crons (claudemd-audit, doc-sync-pass, learnings-pass, fix-checker) now DEFER to active interactive sessions: each calls `~/repos/agentGuidance/scripts/interactive-session-active.sh` in pre-flight (before lock acquisition) and SKIPs while a human session's heartbeat is fresh (`~/.claude/interactive-session.heartbeat`, written by agentGuidance PostToolUse hook `session-heartbeat.sh`, interactive-only). Fixes concurrent-agent shared-tree collisions in the shared `~/repos` checkouts (a cron's branch checkout was catching an interactive session's commit). Worktree isolation was infeasible (88 repos w/ CLAUDE.md, 410G). Commit `c698277`. Closeout: `privateContext/deliverables/closeouts/2026-07-15-secret-scan-gate-and-shared-tree-collision-fix.md`.
+
+## Last Updated (prior)
 2026-06-08 — fix-checker prompt mandates `./deploy.sh` for VM apps
 
 ## Session Notes (2026-06-08)
