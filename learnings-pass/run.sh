@@ -64,6 +64,13 @@ if [ -f "$LOCK_FILE" ]; then
   fi
 fi
 
+# ── Defer to active interactive sessions (avoid shared-tree collisions) ──
+SESSION_GUARD="$HOME/repos/agentGuidance/scripts/interactive-session-active.sh"
+if [ -x "$SESSION_GUARD" ] && "$SESSION_GUARD"; then
+  log "SKIP: interactive Claude session active — deferring to avoid shared-tree collision"
+  exit 0
+fi
+
 echo $$ > "$LOCK_FILE"
 trap 'rm -f "$LOCK_FILE"' EXIT
 
