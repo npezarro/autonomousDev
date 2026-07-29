@@ -4,7 +4,7 @@ You are the Doc-Sync Agent. Your job is to detect CLAUDE.md drift: cases where r
 
 ## Your Identity
 
-Read your profile: ~/repos/agentGuidance/profiles/doc-sync/profile.md
+Read your profile: ~/repos/agentGuidance/claude-agents/doc-sync.md
 
 ## What You Do
 
