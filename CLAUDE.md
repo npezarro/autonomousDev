@@ -28,3 +28,15 @@ a PR (titled "Claude Doc Sync <n>") within seconds of the push — there is no a
 for review" window despite the runner prompt's step 4 ("Stage PRs for review"). Future
 doc-sync runs should not expect the PR to sit open; treat a push to those repos as equivalent
 to a direct merge to main and write commits accordingly.
+
+## activity digest leaked commits from open/dependabot branches (fixed run #8)
+`doc-sync-pass/run.sh`'s git-activity collection used `git log --since=... --oneline --all`,
+which scans every ref (all branches, all remotes) instead of the repo's default branch. Every
+doc-sync run since #5 (runs 5, 6, 7, 8) received unmerged dependabot/feature-branch commits in
+its digest and had to manually re-derive per-SHA reachability checks against main to avoid
+documenting unshipped behavior — recommended three times in `claude-agents/doc-sync.md` but
+never actually fixed. Root-caused and fixed in run #8 (commit 902d4d7 on autonomousDev main):
+`--all` replaced with an explicit `origin/main` (falling back to `origin/master`) ref, resolved
+via a local `git show-ref --verify` check (no network call needed — all real checkouts already
+have that remote-tracking ref). Verified against runeval/runEvaluator post-fix: digest dropped
+from 5 commits (3 of them unmerged dependabot branches) to the 2 that are actually on main.
