@@ -126,7 +126,15 @@ if [ -n "$GIT_SINCE" ]; then
     [ -d "$repo_dir/.git" ] || continue
     [ -f "$repo_dir/CLAUDE.md" ] || continue
 
-    COMMITS=$(cd "$repo_dir" && git log --since="$GIT_SINCE" --oneline --all 2>/dev/null | head -20 || true)
+    DEFAULT_REF=""
+    if (cd "$repo_dir" && git show-ref --verify --quiet refs/remotes/origin/main); then
+      DEFAULT_REF="origin/main"
+    elif (cd "$repo_dir" && git show-ref --verify --quiet refs/remotes/origin/master); then
+      DEFAULT_REF="origin/master"
+    fi
+    [ -z "$DEFAULT_REF" ] && continue
+
+    COMMITS=$(cd "$repo_dir" && git log --since="$GIT_SINCE" --oneline "$DEFAULT_REF" 2>/dev/null | head -20 || true)
     if [ -n "$COMMITS" ]; then
       ACTIVE_REPOS=$((ACTIVE_REPOS + 1))
       COMMIT_COUNT=$(echo "$COMMITS" | wc -l | tr -d ' ')
