@@ -40,3 +40,18 @@ never actually fixed. Root-caused and fixed in run #8 (commit 902d4d7 on autonom
 via a local `git show-ref --verify` check (no network call needed — all real checkouts already
 have that remote-tracking ref). Verified against runeval/runEvaluator post-fix: digest dropped
 from 5 commits (3 of them unmerged dependabot branches) to the 2 that are actually on main.
+
+## activity digest under-reported: stale remote-tracking ref silently dropped a merged commit (fixed run #16)
+The 902d4d7 fix reads `origin/<default-branch>` instead of `--all`, but the digest loop never
+runs `git fetch` first — it trusts whatever `refs/remotes/origin/<branch>` already points to in
+that local checkout. Nothing else in this environment fetches every repo on a schedule, so a
+checkout only advances when some unrelated process (an interactive session, another cron job)
+happens to fetch it. Run #16 (2026-08-18) received a digest listing only 1 of 2 repos with real
+merged activity in the lookback window: `claude-bakeoff`'s own doc-sync run #15 PR (#13,
+d977e84, merged 03:20:35Z) was invisible because that checkout's local `origin/master` hadn't
+been fetched since before the merge, while `scripts`' sibling commit from the same merge batch
+(5e1c71b, merged 03:21:08Z) showed up only because something else had fetched that repo more
+recently. Reproduced directly: `git log --since=... origin/master` returned nothing for
+`claude-bakeoff` before a `git fetch`, and returned d977e84 immediately after. Fixed in commit
+dd8d019 on autonomousDev main: added `git fetch origin --quiet` (non-fatal on failure) before
+resolving `DEFAULT_REF` for each repo in the digest loop.
