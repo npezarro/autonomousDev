@@ -126,6 +126,8 @@ if [ -n "$GIT_SINCE" ]; then
     [ -d "$repo_dir/.git" ] || continue
     [ -f "$repo_dir/CLAUDE.md" ] || continue
 
+    (cd "$repo_dir" && git fetch origin --quiet 2>/dev/null) || true
+
     DEFAULT_REF=""
     if (cd "$repo_dir" && git show-ref --verify --quiet refs/remotes/origin/main); then
       DEFAULT_REF="origin/main"
