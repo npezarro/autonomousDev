@@ -45,7 +45,7 @@ auto-dev/
 
 ## Related Projects
 
-- **[agentGuidance](https://github.com/npezarro/agentGuidance)**: Behavioral governance system that defines the rules this agent follows.
+- **[openAgentGuidance](https://github.com/npezarro/openAgentGuidance)**: The behavioural governance system that defines the rules this agent follows. This is the public mirror; the source repo is private, so the published subset excludes infrastructure-specific guidance.
 - **[claude-bakeoff](https://github.com/npezarro/claude-bakeoff)**: A/B testing framework used to validate instruction changes before they affect the autonomous agent.
 
 ## Requirements
