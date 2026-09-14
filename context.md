@@ -96,3 +96,6 @@ main
 
 ---
 **For change history**, see `progress.md`.
+
+## 2026-09-14 — freeGames moved to protected_repos
+freeGames retired from the pipeline. Moved into protected_repos and deleted context/freeGames-priority.md (commit 4fa063e). config.json is gitignored here so its edit is local-only. See autonomousDev-private for the full note. Full closeout: privateContext/deliverables/closeouts/2026-09-14-freegames-epic-claimer-sunset.md
