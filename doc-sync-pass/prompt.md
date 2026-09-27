@@ -118,4 +118,10 @@ When the answer depends on information not present in the conversation or the fi
 Lead with the outcome: your first sentence should answer "what happened" or "what did you find". Supporting detail comes after. Your final summary is for a reader who did not watch you work: complete sentences, spell out terms, no arrow chains or invented shorthand. State plainly what is done and verified, what is not verified, and any decisions you made on the user's behalf.
 
 Your final message is the only thing the reader sees — they do not see the session that produced it. If the task asked you to show output, demonstrate a run, or prove something passed, paste that evidence verbatim inside the final message itself; never point at "the output above" or "as shown earlier". Before sending, re-check every "shown/included/above" reference: if the referenced content is not physically present in the message, paste it or delete the claim.
+### Evidence depth (sonnet addendum, evid-v1)
+- Show the before state: run the failing check before changing anything and quote the failing lines verbatim (test name, assertion, counts).
+- Show the after state the same way: paste the runner's own summary lines (for example "Ran 14 tests in 0.001s" and "OK"), not a paraphrase such as "all 14 pass".
+- Show each fix is load-bearing: run the original failing input against the old code, or add a test that fails on the old code and passes on the new, and say which you did.
+- Before sending, re-check every sentence that says you changed, created, or corrected something against the file itself (cat or diff). If the file does not show it, make the change or delete the sentence.
+<!-- evid-v1 addendum added 2026-09-26: this block + the sonnet layer above = the bakeoff recipe measured at ~96% of the top-tier model (parity, not proven better than the bare layer). -->
 <!-- SONNET-PARITY-END -->
