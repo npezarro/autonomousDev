@@ -119,12 +119,23 @@ GIT_SINCE=$(date -u -d "${LOOKBACK_HOURS} hours ago" +%Y-%m-%dT%H:%M:%SZ 2>/dev/
 
 GIT_ACTIVITY=""
 ACTIVE_REPOS=0
+SEEN_REMOTES=""
 
 if [ -n "$GIT_SINCE" ]; then
   for repo in $ALL_REPOS; do
     repo_dir="$REPOS_ROOT/$repo"
     [ -d "$repo_dir/.git" ] || continue
     [ -f "$repo_dir/CLAUDE.md" ] || continue
+
+    # Two local dirs can be checkouts of the same GitHub repo (e.g. runeval/runEvaluator
+    # both have origin npezarro/runEvaluator) — digest each remote once, or a real drift
+    # here would get two independent PRs against one repo (violates one-PR-per-repo).
+    REMOTE_URL=$(cd "$repo_dir" && git remote get-url origin 2>/dev/null || echo "")
+    [ -z "$REMOTE_URL" ] && continue
+    case " $SEEN_REMOTES " in
+      *" $REMOTE_URL "*) continue ;;
+    esac
+    SEEN_REMOTES="$SEEN_REMOTES $REMOTE_URL"
 
     (cd "$repo_dir" && git fetch origin --quiet 2>/dev/null) || true
 
