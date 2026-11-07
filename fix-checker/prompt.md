@@ -153,7 +153,7 @@ After fixing any issue, check if the failure pattern reveals a systemic problem.
 - `testing.md` — testing lessons
 - `process-hygiene.md` — process improvements
 
-Only update guidance when there's a genuine learning — not for routine fixes.
+Every run must report a `LEARNED:` field in the output (see Output Format below) — write "none" if genuinely nothing new was found; a blank or missing field is not acceptable. "Routine fix" does not exempt you: if LEARNED is not "none", run `~/repos/agentGuidance/scripts/propagate-learning.sh` to route it (memory, repo CLAUDE.md, guidance files) rather than just noting it in GUIDANCE_UPDATED.
 
 ## Recent Autonomous Dev Activity
 
@@ -191,6 +191,7 @@ TIER2: <root cause fix applied, or "deferred — <reason>", or "n/a">
 FIXED: <one-line summary of fix, or "nothing">
 REPO: <repo name, or "n/a">
 PR: <#number merged, or "n/a">
+LEARNED: <one-line description of what you learned, or "none">
 GUIDANCE_UPDATED: <yes — what file, or "no">
 ```
 
