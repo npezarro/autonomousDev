@@ -1,6 +1,9 @@
 # context.md
 
 ## Last Updated
+2026-11-06 — `supervisor/scorer-prompt.md` `self_service` now scores 0 when a reply names a fact it could have checked with its tools and left it to the user ("I haven't checked", "look it up before you go"); a check that was tried and failed is not a violation (`68cd8cc`). Why: the old definition counted only delegated channels/files/specs, so rule 8 graduated on "0 violations" while the behaviour rose to 30% of interactive answers. State: working. Full closeout: `privateContext/deliverables/closeouts/2026-11-06-lazy-answers-dont-hand-the-user-a-lookup.md`
+
+## Last Updated (prior)
 2026-07-15 — The 4 crons (claudemd-audit, doc-sync-pass, learnings-pass, fix-checker) now DEFER to active interactive sessions: each calls `~/repos/agentGuidance/scripts/interactive-session-active.sh` in pre-flight (before lock acquisition) and SKIPs while a human session's heartbeat is fresh (`~/.claude/interactive-session.heartbeat`, written by agentGuidance PostToolUse hook `session-heartbeat.sh`, interactive-only). Fixes concurrent-agent shared-tree collisions in the shared `~/repos` checkouts (a cron's branch checkout was catching an interactive session's commit). Worktree isolation was infeasible (88 repos w/ CLAUDE.md, 410G). Commit `c698277`. Closeout: `privateContext/deliverables/closeouts/2026-07-15-secret-scan-gate-and-shared-tree-collision-fix.md`.
 
 ## Last Updated (prior)
